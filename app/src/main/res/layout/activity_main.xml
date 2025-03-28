@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@color/white"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/tvTurno"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/turn_format"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="?attr/colorPrimary"
+        android:layout_marginBottom="24dp"/>
+
+    <GridLayout
+        android:id="@+id/gridTablero"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_gravity="center"
+        android:columnCount="3"
+        android:rowCount="3"
+        android:useDefaultMargins="true">
+
+        <Button
+            android:id="@+id/btn00"
+            style="@style/TicTacToeButton" />
+
+        <Button
+            android:id="@+id/btn01"
+            style="@style/TicTacToeButton" />
+
+        <Button
+            android:id="@+id/btn02"
+            style="@style/TicTacToeButton" />
+
+        <Button
+            android:id="@+id/btn10"
+            style="@style/TicTacToeButton" />
+
+        <Button
+            android:id="@+id/btn11"
+            style="@style/TicTacToeButton" />
+
+        <Button
+            android:id="@+id/btn12"
+            style="@style/TicTacToeButton" />
+
+        <Button
+            android:id="@+id/btn20"
+            style="@style/TicTacToeButton" />
+
+        <Button
+            android:id="@+id/btn21"
+            style="@style/TicTacToeButton" />
+
+        <Button
+            android:id="@+id/btn22"
+            style="@style/TicTacToeButton" />
+
+    </GridLayout>
+
+    <Button
+        android:id="@+id/btnReiniciar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="@string/restart_game"
+        android:textSize="18sp"/>
+
+</LinearLayout>

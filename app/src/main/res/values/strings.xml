@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Tic Tac Toe</string>
+    <string name="player_input_title">Ingresa los nombres de los jugadores</string>
+    <string name="player1_hint">Nombre del Jugador 1 (X)</string>
+    <string name="player2_hint">Nombre del Jugador 2 (O)</string>
+    <string name="start_game">¡Empezar juego!</string>
+    <string name="restart_game">Reiniciar Juego</string>
+    <string name="turn_format">Turno de %1$s (%2$s)</string>
+    <string name="game_over">Fin del juego</string>
+    <string name="winner_format">¡%1$s ha ganado!</string>
+    <string name="tie_game">¡Empate!</string>
+    <string name="new_game">Nuevo juego</string>
+    <string name="enter_names_error">Por favor ingresa ambos nombres</string>
+</resources>
