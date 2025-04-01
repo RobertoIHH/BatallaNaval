@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".BatallaNavalActivity">
+
+    <TextView
+        android:id="@+id/tvEstadoJuego"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:gravity="center"
+        android:text="@string/fase_configuracion"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvJugadorActual"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:gravity="center"
+        android:text="@string/jugador_1"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/tvInstrucciones"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:gravity="center"
+        android:text="@string/instrucciones_colocar"
+        android:textSize="16sp" />
+
+    <LinearLayout
+        android:id="@+id/llBotonesConfiguracion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnRotarBarco"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="@string/rotar_barco" />
+
+        <Button
+            android:id="@+id/btnSiguienteBarco"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/siguiente_barco" />
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnTerminarConfiguracion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginBottom="16dp"
+        android:text="@string/terminar_configuracion"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/btnCambiarJugador"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginBottom="16dp"
+        android:text="@string/pasar_turno"
+        android:visibility="gone" />
+
+    <GridLayout
+        android:id="@+id/glTablero"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:columnCount="10"
+        android:rowCount="10"
+        android:useDefaultMargins="true" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnGuardarPartida"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="@string/guardar_partida" />
+
+        <Button
+            android:id="@+id/btnNuevaPartida"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/nueva_partida" />
+
+    </LinearLayout>
+
+</LinearLayout>

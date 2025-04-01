@@ -1,15 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Tic Tac Toe</string>
-    <string name="player_input_title">Ingresa los nombres de los jugadores</string>
-    <string name="player1_hint">Nombre del Jugador 1 (X)</string>
-    <string name="player2_hint">Nombre del Jugador 2 (O)</string>
-    <string name="start_game">¡Empezar juego!</string>
-    <string name="restart_game">Reiniciar Juego</string>
-    <string name="turn_format">Turno de %1$s (%2$s)</string>
-    <string name="game_over">Fin del juego</string>
-    <string name="winner_format">¡%1$s ha ganado!</string>
-    <string name="tie_game">¡Empate!</string>
-    <string name="new_game">Nuevo juego</string>
-    <string name="enter_names_error">Por favor ingresa ambos nombres</string>
+    <string name="app_name">Batalla Naval</string>
+
+    <!-- Estados del juego -->
+    <string name="fase_configuracion">Fase de Configuración</string>
+    <string name="fase_ataque">Fase de Ataque</string>
+
+    <!-- Jugadores -->
+    <string name="jugador_1">Jugador 1</string>
+    <string name="jugador_2">Jugador 2</string>
+
+    <!-- Instrucciones -->
+    <string name="instrucciones_colocar">Coloca tus barcos en el tablero</string>
+    <string name="instrucciones_colocar_barco">Coloca tu %1$s (tamaño: %2$d)</string>
+    <string name="instrucciones_ataque">Selecciona una celda para atacar al oponente</string>
+
+    <!-- Botones -->
+    <string name="rotar_barco">Rotar Barco</string>
+    <string name="siguiente_barco">Siguiente Barco</string>
+    <string name="terminar_configuracion">Terminar Configuración</string>
+    <string name="pasar_turno">Pasar Turno</string>
+    <string name="guardar_partida">Guardar Partida</string>
+    <string name="cargar_partida">Cargar Partida</string>
+    <string name="nueva_partida">Nueva Partida</string>
+    <string name="ok">OK</string>
+    <string name="si">Sí</string>
+    <string name="no">No</string>
+    <string name="salir">Salir</string>
+
+    <!-- Orientación -->
+    <string name="orientacion_horizontal">Orientación: Horizontal</string>
+    <string name="orientacion_vertical">Orientación: Vertical</string>
+
+    <!-- Mensajes -->
+    <string name="no_mas_barcos">No hay más barcos disponibles</string>
+    <string name="posicion_invalida">Posición inválida. Intenta otra vez.</string>
+    <string name="barco_hundido">¡Barco hundido!</string>
+    <string name="impacto">¡Impacto!</string>
+    <string name="agua">¡Agua!</string>
+    <string name="ya_atacada">Esta posición ya ha sido atacada</string>
+    <string name="todos_barcos_colocados">Todos los barcos han sido colocados</string>
+    <string name="cambio_jugador">Cambio de Jugador</string>
+    <string name="turno_jugador">Turno del Jugador %1$d</string>
+    <string name="partida_guardada">Partida guardada correctamente</string>
+    <string name="partida_cargada">Partida cargada correctamente</string>
+    <string name="no_partida_guardada">No hay partida guardada</string>
+    <string name="confirmar_nueva_partida">¿Estás seguro de que deseas iniciar una nueva partida? Se perderá el progreso actual.</string>
+    <string name="victoria">¡Victoria!</string>
+    <string name="mensaje_victoria">¡Felicidades Jugador %1$d! Has ganado la partida.</string>
 </resources>
