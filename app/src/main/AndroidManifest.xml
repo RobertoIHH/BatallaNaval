@@ -23,6 +23,11 @@
             </intent-filter>
         </activity>
 
+        <!-- Actividad de entrada de nombres de jugadores -->
+        <activity
+            android:name=".PlayerInputActivity"
+            android:exported="false" />
+
         <!-- Actividad del juego Batalla Naval -->
         <activity
             android:name=".BatallaNavalActivity"

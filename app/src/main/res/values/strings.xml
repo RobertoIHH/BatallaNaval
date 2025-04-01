@@ -48,4 +48,11 @@
     <string name="confirmar_nueva_partida">¿Estás seguro de que deseas iniciar una nueva partida? Se perderá el progreso actual.</string>
     <string name="victoria">¡Victoria!</string>
     <string name="mensaje_victoria">¡Felicidades Jugador %1$d! Has ganado la partida.</string>
+
+    <!-- Strings para PlayerInputActivity -->
+    <string name="player_input_title">Introduce nombres de los jugadores</string>
+    <string name="player1_hint">Nombre del Jugador 1</string>
+    <string name="player2_hint">Nombre del Jugador 2</string>
+    <string name="start_game">Comenzar Juego</string>
+    <string name="enter_names_error">Por favor, introduce los nombres de ambos jugadores</string>
 </resources>

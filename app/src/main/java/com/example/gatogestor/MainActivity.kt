@@ -18,13 +18,13 @@ class MainActivity : AppCompatActivity() {
         btnCargarPartida = findViewById(R.id.btnCargarPartida)
 
         btnNuevaPartida.setOnClickListener {
-            // Iniciar nueva partida
-            val intent = Intent(this, BatallaNavalActivity::class.java)
+            // Inicia la actividad para introducir nombres de jugadores
+            val intent = Intent(this, PlayerInputActivity::class.java)
             startActivity(intent)
         }
 
         btnCargarPartida.setOnClickListener {
-            // Cargar partida guardada
+            // Cargar partida guardada directamente, ya que los nombres se guardan con el estado
             val intent = Intent(this, BatallaNavalActivity::class.java)
             intent.putExtra("CARGAR_PARTIDA", true)
             startActivity(intent)

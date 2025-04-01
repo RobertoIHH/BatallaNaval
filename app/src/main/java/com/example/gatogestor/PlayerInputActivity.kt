@@ -1,4 +1,4 @@
-package com.example.tictactoeapp
+package com.example.batallanavalgame
 
 import android.content.Intent
 import android.os.Bundle
@@ -37,7 +37,7 @@ class PlayerInputActivity : AppCompatActivity() {
             }
 
             // Crear intent para iniciar la actividad del juego
-            val intent = Intent(this, MainActivity::class.java).apply {
+            val intent = Intent(this, BatallaNavalActivity::class.java).apply {
                 putExtra("JUGADOR1", nombreJugador1)
                 putExtra("JUGADOR2", nombreJugador2)
             }

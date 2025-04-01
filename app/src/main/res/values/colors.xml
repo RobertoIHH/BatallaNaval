@@ -8,6 +8,11 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
+    <!-- Colores para Batalla Naval -->
+    <color name="blue_primary">#1976D2</color>
+    <color name="blue_dark">#0D47A1</color>
+    <color name="blue_light">#BBDEFB</color>
+
     <!-- Colores adicionales para el juego -->
     <color name="player_x">#FF4081</color>
     <color name="player_o">#3F51B5</color>
