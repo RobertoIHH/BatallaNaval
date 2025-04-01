@@ -10,8 +10,14 @@ import java.lang.reflect.Type
 class BatallaNavalManager(private val context: Context) {
 
     private val gson: Gson = GsonBuilder()
-        .registerTypeAdapter(Array<Array<BatallaNavalActivity.EstadoCelda>>::class.java, ArraysTypeAdapter<BatallaNavalActivity.EstadoCelda>())
-        .registerTypeAdapter(Array<Array<Boolean>>::class.java, ArraysTypeAdapter<Boolean>())
+        .registerTypeAdapter(
+            Array<Array<BatallaNavalActivity.EstadoCelda>>::class.java,
+            ArraysTypeAdapter<BatallaNavalActivity.EstadoCelda>()
+        )
+        .registerTypeAdapter(
+            Array<Array<Boolean>>::class.java,
+            ArraysTypeAdapter<Boolean>()
+        )
         .create()
 
     private val sharedPreferences: SharedPreferences = context.getSharedPreferences(

@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "GatoGestor"
+rootProject.name = "BatallaNavalGame"
 include(":app")
