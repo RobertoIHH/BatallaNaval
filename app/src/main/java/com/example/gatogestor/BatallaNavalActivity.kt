@@ -186,6 +186,7 @@ class BatallaNavalActivity : AppCompatActivity() {
                                 actualizarVistaTableroConPreview()
                                 return@setOnHoverListener true
                             }
+
                             MotionEvent.ACTION_HOVER_EXIT -> {
                                 previewFila = -1
                                 previewColumna = -1
@@ -208,6 +209,7 @@ class BatallaNavalActivity : AppCompatActivity() {
                                 actualizarVistaTableroConPreview()
                                 return@setOnTouchListener false // para que el clic siga funcionando
                             }
+
                             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                                 previewFila = -1
                                 previewColumna = -1
@@ -249,6 +251,7 @@ class BatallaNavalActivity : AppCompatActivity() {
                 // Mostrar tablero vacío para el jugador actual
                 actualizarVistaTablero()
             }
+
             FaseJuego.ATAQUE -> {
                 tvEstadoJuego.text = getString(R.string.fase_ataque)
 
@@ -284,7 +287,8 @@ class BatallaNavalActivity : AppCompatActivity() {
         if (faseActual == FaseJuego.CONFIGURACION) {
             // En fase de configuración, mostrar el tablero propio
             tableroActual = if (jugadorActual == 1) tableroJugador1 else tableroJugador2
-            tableroAtaques = if (jugadorActual == 1) tableroAtaquesJugador1 else tableroAtaquesJugador2
+            tableroAtaques =
+                if (jugadorActual == 1) tableroAtaquesJugador1 else tableroAtaquesJugador2
 
             // Actualizar cada celda
             var index = 0
@@ -292,17 +296,25 @@ class BatallaNavalActivity : AppCompatActivity() {
                 for (columna in 0 until TABLERO_SIZE) {
                     val celda = glTablero.getChildAt(index++)
                     when (tableroActual[fila][columna]) {
-                        EstadoCelda.VACIA -> celda.background = ContextCompat.getDrawable(this, R.drawable.cell_empty)
-                        EstadoCelda.BARCO -> celda.background = ContextCompat.getDrawable(this, R.drawable.cell_ship)
-                        EstadoCelda.AGUA -> celda.background = ContextCompat.getDrawable(this, R.drawable.cell_water)
-                        EstadoCelda.IMPACTO -> celda.background = ContextCompat.getDrawable(this, R.drawable.cell_hit)
+                        EstadoCelda.VACIA -> celda.background =
+                            ContextCompat.getDrawable(this, R.drawable.cell_empty)
+
+                        EstadoCelda.BARCO -> celda.background =
+                            ContextCompat.getDrawable(this, R.drawable.cell_ship)
+
+                        EstadoCelda.AGUA -> celda.background =
+                            ContextCompat.getDrawable(this, R.drawable.cell_water)
+
+                        EstadoCelda.IMPACTO -> celda.background =
+                            ContextCompat.getDrawable(this, R.drawable.cell_hit)
                     }
                 }
             }
         } else {
             // En fase de ataque, mostrar el tablero del oponente
             tableroActual = if (jugadorActual == 1) tableroJugador2 else tableroJugador1
-            tableroAtaques = if (jugadorActual == 1) tableroAtaquesJugador1 else tableroAtaquesJugador2
+            tableroAtaques =
+                if (jugadorActual == 1) tableroAtaquesJugador1 else tableroAtaquesJugador2
 
             // Actualizar cada celda, ocultando barcos no atacados
             var index = 0
@@ -312,8 +324,11 @@ class BatallaNavalActivity : AppCompatActivity() {
                     if (tableroAtaques[fila][columna]) {
                         // Celda ya atacada
                         when (tableroActual[fila][columna]) {
-                            EstadoCelda.BARCO -> celda.background = ContextCompat.getDrawable(this, R.drawable.cell_hit)
-                            else -> celda.background = ContextCompat.getDrawable(this, R.drawable.cell_water)
+                            EstadoCelda.BARCO -> celda.background =
+                                ContextCompat.getDrawable(this, R.drawable.cell_hit)
+
+                            else -> celda.background =
+                                ContextCompat.getDrawable(this, R.drawable.cell_water)
                         }
                     } else {
                         // Celda no atacada
@@ -340,20 +355,26 @@ class BatallaNavalActivity : AppCompatActivity() {
                 val celda = glTablero.getChildAt(index++)
 
                 // Verificar si la celda es parte de la vista previa
-                val esVistaPrevia = esParteDeLaVistaPrevia(fila, columna, previewFila, previewColumna,
-                    barcoActual.longitud, orientacionHorizontal)
+                val esVistaPrevia = esParteDeLaVistaPrevia(
+                    fila, columna, previewFila, previewColumna,
+                    barcoActual.longitud, orientacionHorizontal
+                )
 
                 // Determinar qué color mostrar
                 val color = when {
                     esVistaPrevia -> {
                         // Verificar si la posición es válida
-                        if (comprobarPosicionValida(previewFila, previewColumna,
-                                barcoActual.longitud, orientacionHorizontal, tableroActual)) {
+                        if (comprobarPosicionValida(
+                                previewFila, previewColumna,
+                                barcoActual.longitud, orientacionHorizontal, tableroActual
+                            )
+                        ) {
                             R.drawable.cell_ship_preview_valid
                         } else {
                             R.drawable.cell_ship_preview_invalid
                         }
                     }
+
                     tableroActual[fila][columna] == EstadoCelda.VACIA -> R.drawable.cell_empty
                     tableroActual[fila][columna] == EstadoCelda.BARCO -> R.drawable.cell_ship
                     tableroActual[fila][columna] == EstadoCelda.AGUA -> R.drawable.cell_water
@@ -399,7 +420,14 @@ class BatallaNavalActivity : AppCompatActivity() {
         val barcosJugador = if (jugadorActual == 1) barcosJugador1 else barcosJugador2
 
         // Verificar si el barco cabe en esa posición
-        if (comprobarPosicionValida(fila, columna, barcoActual.longitud, orientacionHorizontal, tableroActual)) {
+        if (comprobarPosicionValida(
+                fila,
+                columna,
+                barcoActual.longitud,
+                orientacionHorizontal,
+                tableroActual
+            )
+        ) {
             // Colocar barco
             val posiciones = mutableListOf<Pair<Int, Int>>()
 
@@ -432,7 +460,8 @@ class BatallaNavalActivity : AppCompatActivity() {
 
     private fun manejarClickAtaque(fila: Int, columna: Int) {
         val tableroOponente = if (jugadorActual == 1) tableroJugador2 else tableroJugador1
-        val tableroAtaques = if (jugadorActual == 1) tableroAtaquesJugador1 else tableroAtaquesJugador2
+        val tableroAtaques =
+            if (jugadorActual == 1) tableroAtaquesJugador1 else tableroAtaquesJugador2
         val barcosOponente = if (jugadorActual == 1) barcosJugador2 else barcosJugador1
 
         // Verificar si esa celda ya fue atacada
@@ -710,3 +739,4 @@ class BatallaNavalActivity : AppCompatActivity() {
             return result
         }
     }
+}
