@@ -673,43 +673,40 @@ class BatallaNavalActivity : AppCompatActivity() {
         val nombreJugador2: String
     ) {
         override fun equals(other: Any?): Boolean {
-            if (this === other) {
-                overrxide fun equals(other: Any?): Boolean {
-                    if (this === other) return true
-                    if (javaClass != other?.javaClass) return false
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
 
-                    other as EstadoJuego
+            other as EstadoJuego
 
-                    if (faseActual != other.faseActual) return false
-                    if (jugadorActual != other.jugadorActual) return false
-                    if (barcoActualIndex != other.barcoActualIndex) return false
-                    if (orientacionHorizontal != other.orientacionHorizontal) return false
-                    if (!tableroJugador1.contentDeepEquals(other.tableroJugador1)) return false
-                    if (!tableroJugador2.contentDeepEquals(other.tableroJugador2)) return false
-                    if (!tableroAtaquesJugador1.contentDeepEquals(other.tableroAtaquesJugador1)) return false
-                    if (!tableroAtaquesJugador2.contentDeepEquals(other.tableroAtaquesJugador2)) return false
-                    if (barcosJugador1 != other.barcosJugador1) return false
-                    if (barcosJugador2 != other.barcosJugador2) return false
-                    if (nombreJugador1 != other.nombreJugador1) return false
-                    if (nombreJugador2 != other.nombreJugador2) return false
+            if (faseActual != other.faseActual) return false
+            if (jugadorActual != other.jugadorActual) return false
+            if (barcoActualIndex != other.barcoActualIndex) return false
+            if (orientacionHorizontal != other.orientacionHorizontal) return false
+            if (!tableroJugador1.contentDeepEquals(other.tableroJugador1)) return false
+            if (!tableroJugador2.contentDeepEquals(other.tableroJugador2)) return false
+            if (!tableroAtaquesJugador1.contentDeepEquals(other.tableroAtaquesJugador1)) return false
+            if (!tableroAtaquesJugador2.contentDeepEquals(other.tableroAtaquesJugador2)) return false
+            if (barcosJugador1 != other.barcosJugador1) return false
+            if (barcosJugador2 != other.barcosJugador2) return false
+            if (nombreJugador1 != other.nombreJugador1) return false
+            if (nombreJugador2 != other.nombreJugador2) return false
 
-                    return true
-                }
-
-                override fun hashCode(): Int {
-                    var result = faseActual.hashCode()
-                    result = 31 * result + jugadorActual
-                    result = 31 * result + barcoActualIndex
-                    result = 31 * result + orientacionHorizontal.hashCode()
-                    result = 31 * result + tableroJugador1.contentDeepHashCode()
-                    result = 31 * result + tableroJugador2.contentDeepHashCode()
-                    result = 31 * result + tableroAtaquesJugador1.contentDeepHashCode()
-                    result = 31 * result + tableroAtaquesJugador2.contentDeepHashCode()
-                    result = 31 * result + barcosJugador1.hashCode()
-                    result = 31 * result + barcosJugador2.hashCode()
-                    result = 31 * result + nombreJugador1.hashCode()
-                    result = 31 * result + nombreJugador2.hashCode()
-                    return result
-                }
-            }
+            return true
         }
+
+        override fun hashCode(): Int {
+            var result = faseActual.hashCode()
+            result = 31 * result + jugadorActual
+            result = 31 * result + barcoActualIndex
+            result = 31 * result + orientacionHorizontal.hashCode()
+            result = 31 * result + tableroJugador1.contentDeepHashCode()
+            result = 31 * result + tableroJugador2.contentDeepHashCode()
+            result = 31 * result + tableroAtaquesJugador1.contentDeepHashCode()
+            result = 31 * result + tableroAtaquesJugador2.contentDeepHashCode()
+            result = 31 * result + barcosJugador1.hashCode()
+            result = 31 * result + barcosJugador2.hashCode()
+            result = 31 * result + nombreJugador1.hashCode()
+            result = 31 * result + nombreJugador2.hashCode()
+            return result
+        }
+    }
