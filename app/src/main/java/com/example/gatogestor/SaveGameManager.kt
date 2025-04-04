@@ -6,11 +6,9 @@ import android.util.Log
 import android.widget.Toast
 import com.google.android.material.snackbar.Snackbar
 import android.view.View
-import com.example.batallanavalgame.BatallaNavalActivity.EstadoPartida
 
 /**
- * Clase encargada de gestionar todas las operaciones de guardado y carga de partidas
- * en diferentes formatos (JSON, XML, TXT).
+ * Gestiona todas las operaciones de guardado/carga usando las implementaciones específicas
  */
 class SaveGameManager(private val context: Context) {
 
@@ -23,10 +21,8 @@ class SaveGameManager(private val context: Context) {
         PREFS_NAME, Context.MODE_PRIVATE
     )
 
-    // La dependencia JsonSaveFormat se inyecta aquí
+    // Dependencias para los distintos formatos
     private val jsonSaveFormat = JsonSaveFormat(context)
-
-    // La dependencia para formatos alternativos
     private val alternativeSaveFormats = AlternativeSaveFormats(context)
 
     companion object {
@@ -37,16 +33,17 @@ class SaveGameManager(private val context: Context) {
         private const val KEY_GAMES_PLAYED = "partidas_jugadas"
         private const val TAG = "SaveGameManager"
 
-        // Nombres de archivos para diferentes formatos
-        const val SAVE_FILE_JSON = "batalla_naval_save.json"
-        const val SAVE_FILE_XML = "batalla_naval_save.xml"
-        const val SAVE_FILE_TEXT = "batalla_naval_save.txt"
+        // Nombres de archivos para diferentes formatos son ahora importados de SaveGameUtils
     }
 
     /**
      * Guarda el estado del juego en el formato seleccionado
      */
-    fun guardarPartida(estadoJuego: EstadoPartida, formato: SaveFormat = getSavedFormat(), vista: View? = null) {
+    fun guardarPartida(
+        estadoJuego: EstadoPartida,
+        formato: SaveFormat = getSavedFormat(),
+        vista: View? = null
+    ) {
         // Guardar formato seleccionado
         guardarFormatoSeleccionado(formato)
 
@@ -122,15 +119,27 @@ class SaveGameManager(private val context: Context) {
 
         // Si falla, intentar los otros formatos
         if (estado == null && formatoPreferido != SaveFormat.JSON) {
-            estado = try { jsonSaveFormat.cargarPartidaJSON() } catch (e: Exception) { null }
+            estado = try {
+                jsonSaveFormat.cargarPartidaJSON()
+            } catch (e: Exception) {
+                null
+            }
         }
 
         if (estado == null && formatoPreferido != SaveFormat.XML) {
-            estado = try { alternativeSaveFormats.cargarPartidaXML() } catch (e: Exception) { null }
+            estado = try {
+                alternativeSaveFormats.cargarPartidaXML()
+            } catch (e: Exception) {
+                null
+            }
         }
 
         if (estado == null && formatoPreferido != SaveFormat.TEXT) {
-            estado = try { alternativeSaveFormats.cargarPartidaTXT() } catch (e: Exception) { null }
+            estado = try {
+                alternativeSaveFormats.cargarPartidaTXT()
+            } catch (e: Exception) {
+                null
+            }
         }
 
         return estado
@@ -152,7 +161,6 @@ class SaveGameManager(private val context: Context) {
     }
 
     // Métodos para registro de estadísticas de juego
-
     fun registrarVictoria(jugador: Int) {
         val key = if (jugador == 1) KEY_PLAYER1_WINS else KEY_PLAYER2_WINS
         val victorias = sharedPreferences.getInt(key, 0) + 1

@@ -4,10 +4,8 @@ import android.content.Context
 import android.util.Log
 import android.util.Xml
 import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import org.xmlpull.v1.XmlPullParser
-import com.example.batallanavalgame.BatallaNavalActivity.*
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -17,17 +15,8 @@ import java.util.*
  */
 class AlternativeSaveFormats(private val context: Context) {
 
-    // Gson para serializar/deserializar partes complejas
-    private val gson: Gson = GsonBuilder()
-        .registerTypeAdapter(
-            Array<Array<EstadoCelda>>::class.java,
-            JsonSaveFormat.ArraysTypeAdapter<EstadoCelda>()
-        )
-        .registerTypeAdapter(
-            Array<Array<Boolean>>::class.java,
-            JsonSaveFormat.ArraysTypeAdapter<Boolean>()
-        )
-        .create()
+    // Usar la instancia de Gson de SaveGameUtils
+    private val gson: Gson = SaveGameUtils.createGson()
 
     companion object {
         private const val TAG = "AlternativeSaveFormats"
@@ -37,7 +26,7 @@ class AlternativeSaveFormats(private val context: Context) {
      * Guarda una partida en formato XML
      */
     fun guardarPartidaXML(estadoJuego: EstadoPartida) {
-        val file = File(context.filesDir, SaveGameManager.SAVE_FILE_XML)
+        val file = File(context.filesDir, SaveGameUtils.SAVE_FILE_XML)
         val fileOutputStream = FileOutputStream(file)
 
         val serializer = Xml.newSerializer()
@@ -86,10 +75,7 @@ class AlternativeSaveFormats(private val context: Context) {
         serializer.endTag("", "GameTimeSeconds")
         serializer.endTag("", "GameState")
 
-        // Aquí se escribirían los tableros de estado y resto de datos
-        // Pero por ser muy complejo y extenso, convertimos esas partes a JSON
-        // para simplificar el XML
-
+        // Convertir datos complejos a JSON para simplificar XML
         val boardsJson = gson.toJson(mapOf(
             "tableroJugador1" to estadoJuego.tableroJugador1,
             "tableroJugador2" to estadoJuego.tableroJugador2,
@@ -127,7 +113,7 @@ class AlternativeSaveFormats(private val context: Context) {
      * Carga una partida desde formato XML
      */
     fun cargarPartidaXML(): EstadoPartida? {
-        val file = File(context.filesDir, SaveGameManager.SAVE_FILE_XML)
+        val file = File(context.filesDir, SaveGameUtils.SAVE_FILE_XML)
         if (!file.exists()) return null
 
         val fileInputStream = FileInputStream(file)
@@ -277,7 +263,7 @@ class AlternativeSaveFormats(private val context: Context) {
      * Guarda una partida en formato TXT
      */
     fun guardarPartidaTXT(estadoJuego: EstadoPartida) {
-        val file = File(context.filesDir, SaveGameManager.SAVE_FILE_TEXT)
+        val file = File(context.filesDir, SaveGameUtils.SAVE_FILE_TEXT)
         val writer = FileWriter(file)
         val buffer = BufferedWriter(writer)
 
@@ -358,7 +344,7 @@ class AlternativeSaveFormats(private val context: Context) {
      * Carga una partida desde formato TXT
      */
     fun cargarPartidaTXT(): EstadoPartida? {
-        val file = File(context.filesDir, SaveGameManager.SAVE_FILE_TEXT)
+        val file = File(context.filesDir, SaveGameUtils.SAVE_FILE_TEXT)
         if (!file.exists()) return null
 
         val reader = BufferedReader(FileReader(file))
@@ -503,8 +489,8 @@ class AlternativeSaveFormats(private val context: Context) {
      */
     fun borrarArchivosGuardados() {
         try {
-            File(context.filesDir, SaveGameManager.SAVE_FILE_XML).delete()
-            File(context.filesDir, SaveGameManager.SAVE_FILE_TEXT).delete()
+            File(context.filesDir, SaveGameUtils.SAVE_FILE_XML).delete()
+            File(context.filesDir, SaveGameUtils.SAVE_FILE_TEXT).delete()
         } catch (e: Exception) {
             Log.e(TAG, "Error al borrar archivos de guardado", e)
         }
