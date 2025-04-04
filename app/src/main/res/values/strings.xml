@@ -90,4 +90,8 @@
     <string name="player2_hint">Nombre del Jugador 2</string>
     <string name="start_game">Comenzar Juego</string>
     <string name="enter_names_error">Por favor, introduce los nombres de ambos jugadores</string>
+    <string name="partidas_jugadas">Partidas jugadas: %1$d</string>
+
+    <string name="partidas_jugadas_total">Total de partidas jugadas: %1$d</string>
+
 </resources>
