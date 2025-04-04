@@ -60,6 +60,7 @@ class BatallaNavalActivity : AppCompatActivity() {
     // Barcos colocados
     private val barcosJugador1 = mutableListOf<BarcoColocado>()
     private val barcosJugador2 = mutableListOf<BarcoColocado>()
+    private var interaccionBloqueada = false
 
     // Manager para guardar/cargar partidas
     private lateinit var batallaNavalManager: BatallaNavalManager
@@ -402,6 +403,11 @@ class BatallaNavalActivity : AppCompatActivity() {
     }
 
     private fun manejarClick(fila: Int, columna: Int) {
+        // Verificar si la interacción está bloqueada
+        if (interaccionBloqueada) {
+            return
+        }
+
         when (faseActual) {
             FaseJuego.CONFIGURACION -> manejarClickConfiguracion(fila, columna)
             FaseJuego.ATAQUE -> manejarClickAtaque(fila, columna)
@@ -459,6 +465,9 @@ class BatallaNavalActivity : AppCompatActivity() {
     }
 
     private fun manejarClickAtaque(fila: Int, columna: Int) {
+        if (interaccionBloqueada) {
+            return
+        }
         val tableroOponente = if (jugadorActual == 1) tableroJugador2 else tableroJugador1
         val tableroAtaques =
             if (jugadorActual == 1) tableroAtaquesJugador1 else tableroAtaquesJugador2
@@ -469,6 +478,7 @@ class BatallaNavalActivity : AppCompatActivity() {
             Toast.makeText(this, R.string.ya_atacada, Toast.LENGTH_SHORT).show()
             return
         }
+        interaccionBloqueada = true
 
         // Registrar ataque
         tableroAtaques[fila][columna] = true
@@ -561,7 +571,11 @@ class BatallaNavalActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle(R.string.cambio_jugador)
             .setMessage("Turno de $nombreJugadorActual")
-            .setPositiveButton(R.string.ok, null)
+            .setPositiveButton(R.string.ok) { _, _ ->
+                // Desbloquear interacción después de cerrar el diálogo
+                interaccionBloqueada = false
+            }
+            .setCancelable(false) // No permitir cerrar con el botón atrás
             .show()
     }
 
