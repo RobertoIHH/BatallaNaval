@@ -92,6 +92,8 @@
     <string name="enter_names_error">Por favor, introduce los nombres de ambos jugadores</string>
     <string name="partidas_jugadas">Partidas jugadas: %1$d</string>
 
+    <string name="backup_guardado_json">Partida guardada en formato JSON como respaldo</string>
+
     <string name="partidas_jugadas_total">Total de partidas jugadas: %1$d</string>
 
 </resources>
