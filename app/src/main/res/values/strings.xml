@@ -27,6 +27,8 @@
     <string name="si">Sí</string>
     <string name="no">No</string>
     <string name="salir">Salir</string>
+    <string name="ver_historial">Ver Historial</string>
+    <string name="estadisticas">Estadísticas</string>
 
     <!-- Orientación -->
     <string name="orientacion_horizontal">Orientación: Horizontal</string>
@@ -48,6 +50,39 @@
     <string name="confirmar_nueva_partida">¿Estás seguro de que deseas iniciar una nueva partida? Se perderá el progreso actual.</string>
     <string name="victoria">¡Victoria!</string>
     <string name="mensaje_victoria">¡Felicidades Jugador %1$d! Has ganado la partida.</string>
+    <string name="faltan_barcos">Debes colocar todos los barcos antes de continuar</string>
+    <string name="maximo_barcos_alcanzado">Ya has colocado el máximo número de barcos permitidos</string>
+    <string name="nueva_partida_iniciada">Nueva partida iniciada</string>
+    <string name="no_movimientos">No hay movimientos registrados</string>
+
+    <!-- Nuevos strings para características añadidas -->
+    <string name="tiempo_juego">Tiempo de juego:</string>
+    <string name="puntuacion_jugador_formato">Puntuación: %1$d</string>
+    <string name="puntuacion_jugador">Puntuación: %1$d</string>
+    <string name="victorias_jugador_formato">Victorias: %1$d</string>
+    <string name="victorias_jugador">Victorias: %1$d</string>
+    <string name="formato_guardado">Formato de guardado:</string>
+    <string name="partida_guardada_formato">Partida guardada en formato %1$s</string>
+    <string name="error_guardar_partida">Error al guardar partida: %1$s</string>
+
+    <!-- Diálogo de victoria con estadísticas -->
+    <string name="felicidades_victoria">¡Felicidades %1$s! Has ganado la partida.</string>
+    <string name="puntuacion_final">Puntuación final: %1$d puntos</string>
+    <string name="tiempo_total">Tiempo total: %1$s</string>
+    <string name="movimientos_totales">Movimientos totales: %1$d</string>
+
+    <!-- Resumen de partida cargada -->
+    <string name="resumen_partida">Resumen de la partida cargada</string>
+    <string name="fase_actual">Fase actual: %1$s</string>
+    <string name="turno_actual">Turno actual: %1$s</string>
+    <string name="tiempo_jugado">Tiempo jugado: %1$s</string>
+    <string name="puntuacion_jugador1">%1$s: %2$d puntos</string>
+    <string name="puntuacion_jugador2">%1$s: %2$d puntos</string>
+    <string name="movimientos_realizados">Movimientos realizados: %1$d</string>
+
+    <!-- Historial de movimientos -->
+    <string name="historial_movimientos">Historial de Movimientos</string>
+    <string name="movimiento_detalle">%1$s atacó (%2$d,%3$d) - %4$s [%5$s]</string>
 
     <!-- Strings para PlayerInputActivity -->
     <string name="player_input_title">Introduce nombres de los jugadores</string>

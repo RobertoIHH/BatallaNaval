@@ -1,111 +1,276 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp"
+    android:fillViewport="true"
     tools:context=".BatallaNavalActivity">
 
-    <TextView
-        android:id="@+id/tvEstadoJuego"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:gravity="center"
-        android:text="@string/fase_configuracion"
-        android:textSize="20sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/tvJugadorActual"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:gravity="center"
-        android:text="@string/jugador_1"
-        android:textSize="18sp" />
-
-    <TextView
-        android:id="@+id/tvInstrucciones"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:gravity="center"
-        android:text="@string/instrucciones_colocar"
-        android:textSize="16sp" />
-
-    <LinearLayout
-        android:id="@+id/llBotonesConfiguracion"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:gravity="center"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/btnRotarBarco"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:text="@string/rotar_barco" />
-
-        <Button
-            android:id="@+id/btnSiguienteBarco"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/siguiente_barco" />
-
-    </LinearLayout>
-
-    <Button
-        android:id="@+id/btnTerminarConfiguracion"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginBottom="16dp"
-        android:text="@string/terminar_configuracion"
-        android:visibility="gone" />
-
-    <Button
-        android:id="@+id/btnCambiarJugador"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginBottom="16dp"
-        android:text="@string/pasar_turno"
-        android:visibility="gone" />
-
-    <GridLayout
-        android:id="@+id/glTablero"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:columnCount="10"
-        android:rowCount="10"
-        android:useDefaultMargins="true" />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:gravity="center"
-        android:orientation="horizontal">
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Estado y jugador actual -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_weight="1">
+
+                <TextView
+                    android:id="@+id/tvEstadoJuego"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:text="@string/fase_configuracion"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvJugadorActual"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:text="@string/jugador_1"
+                    android:textSize="16sp" />
+
+            </LinearLayout>
+
+            <!-- Tiempo de juego -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="end">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tiempo_juego"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/tvTiempoJuego"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="00:00"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/blue_primary" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Separador -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/blue_light"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Instrucciones -->
+        <TextView
+            android:id="@+id/tvInstrucciones"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:gravity="center"
+            android:text="@string/instrucciones_colocar"
+            android:textSize="16sp" />
+
+        <!-- Puntuaciones -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/tvPuntajeJugador1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/puntuacion_jugador_formato"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tvPuntajeJugador2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/puntuacion_jugador_formato"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Victorias -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:id="@+id/tvVictoriasJugador1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/victorias_jugador_formato"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tvVictoriasJugador2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/victorias_jugador_formato"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Botones de configuración -->
+        <LinearLayout
+            android:id="@+id/llBotonesConfiguracion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnRotarBarco"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="@string/rotar_barco" />
+
+            <Button
+                android:id="@+id/btnSiguienteBarco"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/siguiente_barco" />
+
+        </LinearLayout>
 
         <Button
-            android:id="@+id/btnGuardarPartida"
+            android:id="@+id/btnTerminarConfiguracion"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:text="@string/guardar_partida" />
+            android:layout_gravity="center"
+            android:layout_marginBottom="8dp"
+            android:text="@string/terminar_configuracion"
+            android:visibility="gone" />
 
         <Button
-            android:id="@+id/btnNuevaPartida"
+            android:id="@+id/btnCambiarJugador"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/nueva_partida" />
+            android:layout_gravity="center"
+            android:layout_marginBottom="8dp"
+            android:text="@string/pasar_turno"
+            android:visibility="gone" />
 
+        <!-- Tablero -->
+        <GridLayout
+            android:id="@+id/glTablero"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:columnCount="10"
+            android:rowCount="10"
+            android:useDefaultMargins="true" />
+
+        <!-- Controles para guardar partida -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="16dp">
+
+            <!-- Selector de formato de guardado -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/formato_guardado"
+                    android:layout_marginEnd="8dp"/>
+
+                <Spinner
+                    android:id="@+id/spinnerFormatoGuardado"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"/>
+            </LinearLayout>
+
+            <!-- Botones de acción -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnGuardarPartida"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="4dp"
+                    android:text="@string/guardar_partida" />
+
+                <Button
+                    android:id="@+id/btnNuevaPartida"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:text="@string/nueva_partida" />
+            </LinearLayout>
+
+            <!-- Botones adicionales para historial y estadísticas -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp">
+
+                <Button
+                    android:id="@+id/btnVerHistorial"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="4dp"
+                    android:text="@string/ver_historial"
+                    android:textSize="12sp"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+                <Button
+                    android:id="@+id/btnEstadisticas"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:text="@string/estadisticas"
+                    android:textSize="12sp"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
-
-</LinearLayout>
+</ScrollView>
