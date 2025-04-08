@@ -672,3 +672,289 @@ class BatallaNavalActivity : AppCompatActivity() {
         }
 
 // Actualizar vista y cambiar turno autom
+// Continúa desde línea 432 de BatallaNavalActivity.kt
+
+        // Actualizar vista y cambiar turno automáticamente después de un tiempo breve
+        actualizarVistaTablero()
+        actualizarEstadisticasUI()
+
+        // Programar cambio de turno automático después de un breve retraso (para que el jugador vea el resultado)
+        Handler(Looper.getMainLooper()).postDelayed({
+            interaccionBloqueada = false
+            if (resultado != BatallaNavalGameLogic.AtaqueResultado.IMPACTO &&
+                resultado != BatallaNavalGameLogic.AtaqueResultado.HUNDIDO) {
+                cambiarJugador()
+            }
+        }, 1500)
+    }
+
+    private fun cambiarJugador() {
+        // Cambiar al otro jugador
+        jugadorActual = if (jugadorActual == 1) 2 else 1
+
+        // Diálogo informativo
+        AlertDialog.Builder(this)
+            .setTitle(R.string.cambio_jugador)
+            .setMessage(getString(R.string.turno_jugador, jugadorActual))
+            .setPositiveButton(R.string.ok) { _, _ ->
+                // Actualizar UI
+                actualizarUI()
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun iniciarFaseAtaque() {
+        faseActual = FaseJuego.ATAQUE
+        jugadorActual = 1 // El primer jugador comienza el ataque
+
+        // Reiniciar cronómetro para fase de ataque
+        detenerCronometro()
+        iniciarCronometro()
+
+        actualizarUI()
+
+        // Mostrar mensaje de inicio de fase de ataque
+        Snackbar.make(glTablero, R.string.fase_ataque, Snackbar.LENGTH_LONG).show()
+    }
+
+    private fun mostrarDialogoVictoria() {
+        // Detener cronómetro
+        detenerCronometro()
+
+        // Formato para el tiempo total
+        val formatoTiempo = SimpleDateFormat("mm:ss", Locale.getDefault())
+        formatoTiempo.timeZone = TimeZone.getTimeZone("UTC")
+        val tiempoFormateado = formatoTiempo.format(Date(tiempoTranscurridoMs))
+
+        // Nombre del jugador ganador
+        val nombreGanador = if (jugadorActual == 1) nombreJugador1 else nombreJugador2
+
+        // Registrar victoria en las estadísticas
+        batallaNavalManager.registrarVictoria(jugadorActual)
+
+        // Mostrar diálogo de victoria con estadísticas
+        AlertDialog.Builder(this)
+            .setTitle(R.string.victoria)
+            .setMessage(
+                getString(R.string.felicidades_victoria, nombreGanador) + "\n\n" +
+                        getString(R.string.puntuacion_final, if (jugadorActual == 1) puntajeJugador1 else puntajeJugador2) + "\n" +
+                        getString(R.string.tiempo_total, tiempoFormateado) + "\n" +
+                        getString(R.string.movimientos_totales, historialMovimientos.size)
+            )
+            .setPositiveButton(R.string.nueva_partida) { _, _ ->
+                // Iniciar nueva partida
+                mostrarDialogoNuevaPartida()
+            }
+            .setNegativeButton(R.string.salir) { _, _ ->
+                finish()
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun guardarPartida() {
+        // Crear objeto de estado para guardar
+        val estadoPartida = EstadoPartida(
+            faseActual,
+            jugadorActual,
+            barcoActualIndex,
+            orientacionHorizontal,
+            tableroJugador1,
+            tableroJugador2,
+            tableroAtaquesJugador1,
+            tableroAtaquesJugador2,
+            barcosJugador1,
+            barcosJugador2,
+            nombreJugador1,
+            nombreJugador2,
+            puntajeJugador1,
+            puntajeJugador2,
+            tiempoTranscurridoMs / 1000, // Guardar en segundos
+            historialMovimientos
+        )
+
+        // Utilizar el SaveGameManager para guardar
+        batallaNavalManager.guardarPartida(estadoPartida, vista = findViewById(android.R.id.content))
+    }
+
+    private fun cargarPartida() {
+        val estadoPartida = batallaNavalManager.cargarPartida()
+
+        if (estadoPartida == null) {
+            Toast.makeText(this, R.string.no_partida_guardada, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Cargar todos los datos del estado
+        faseActual = estadoPartida.faseActual
+        jugadorActual = estadoPartida.jugadorActual
+        barcoActualIndex = estadoPartida.barcoActualIndex
+        orientacionHorizontal = estadoPartida.orientacionHorizontal
+
+        // Copiar tableros
+        for (i in 0 until TABLERO_SIZE) {
+            for (j in 0 until TABLERO_SIZE) {
+                tableroJugador1[i][j] = estadoPartida.tableroJugador1[i][j]
+                tableroJugador2[i][j] = estadoPartida.tableroJugador2[i][j]
+                tableroAtaquesJugador1[i][j] = estadoPartida.tableroAtaquesJugador1[i][j]
+                tableroAtaquesJugador2[i][j] = estadoPartida.tableroAtaquesJugador2[i][j]
+            }
+        }
+
+        // Cargar barcos
+        barcosJugador1.clear()
+        barcosJugador1.addAll(estadoPartida.barcosJugador1)
+
+        barcosJugador2.clear()
+        barcosJugador2.addAll(estadoPartida.barcosJugador2)
+
+        // Cargar nombres y puntuaciones
+        nombreJugador1 = estadoPartida.nombreJugador1
+        nombreJugador2 = estadoPartida.nombreJugador2
+        puntajeJugador1 = estadoPartida.puntajeJugador1
+        puntajeJugador2 = estadoPartida.puntajeJugador2
+
+        // Cargar tiempo transcurrido (convertir de segundos a ms)
+        tiempoTranscurridoMs = estadoPartida.tiempoJuegoSegundos * 1000
+
+        // Cargar historial de movimientos
+        historialMovimientos.clear()
+        historialMovimientos.addAll(estadoPartida.historialMovimientos)
+
+        // Iniciar cronómetro con el tiempo cargado
+        if (faseActual == FaseJuego.ATAQUE) {
+            iniciarCronometro()
+        }
+
+        // Actualizar la UI
+        actualizarUI()
+
+        // Mostrar resumen de la partida cargada
+        mostrarResumenPartidaCargada(estadoPartida)
+    }
+
+    private fun mostrarResumenPartidaCargada(estadoPartida: EstadoPartida) {
+        // Formatear el tiempo de juego
+        val formatoTiempo = SimpleDateFormat("mm:ss", Locale.getDefault())
+        formatoTiempo.timeZone = TimeZone.getTimeZone("UTC")
+        val tiempoFormateado = formatoTiempo.format(Date(estadoPartida.tiempoJuegoSegundos * 1000))
+
+        // Nombre del jugador actual
+        val nombreJugadorActual = if (estadoPartida.jugadorActual == 1)
+            estadoPartida.nombreJugador1 else estadoPartida.nombreJugador2
+
+        // Crear mensaje de resumen
+        val mensaje = StringBuilder()
+            .append(getString(R.string.fase_actual, estadoPartida.faseActual.name))
+            .append("\n")
+            .append(getString(R.string.turno_actual, nombreJugadorActual))
+            .append("\n")
+            .append(getString(R.string.tiempo_jugado, tiempoFormateado))
+            .append("\n\n")
+            .append(getString(R.string.puntuacion_jugador1, estadoPartida.nombreJugador1, estadoPartida.puntajeJugador1))
+            .append("\n")
+            .append(getString(R.string.puntuacion_jugador2, estadoPartida.nombreJugador2, estadoPartida.puntajeJugador2))
+            .append("\n\n")
+            .append(getString(R.string.movimientos_realizados, estadoPartida.historialMovimientos.size))
+
+        // Mostrar diálogo con resumen
+        AlertDialog.Builder(this)
+            .setTitle(R.string.resumen_partida)
+            .setMessage(mensaje.toString())
+            .setPositiveButton(R.string.ok, null)
+            .show()
+    }
+
+    private fun mostrarDialogoNuevaPartida() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.nueva_partida)
+            .setMessage(R.string.confirmar_nueva_partida)
+            .setPositiveButton(R.string.si) { _, _ ->
+                // Iniciar nueva partida (volver a la actividad de input de jugadores)
+                val intent = Intent(this, PlayerInputActivity::class.java)
+                startActivity(intent)
+                finish()
+            }
+            .setNegativeButton(R.string.no, null)
+            .show()
+    }
+
+    private fun mostrarHistorialMovimientos() {
+        if (historialMovimientos.isEmpty()) {
+            Toast.makeText(this, R.string.no_movimientos, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Crear lista formateada de movimientos
+        val formatoFecha = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+        val stringBuilder = StringBuilder()
+
+        historialMovimientos.forEachIndexed { index, movimiento ->
+            val nombreJugador = if (movimiento.jugador == 1) nombreJugador1 else nombreJugador2
+            val horaFormateada = formatoFecha.format(Date(movimiento.timestamp))
+
+            stringBuilder.append("${index + 1}. ")
+            stringBuilder.append(
+                getString(
+                    R.string.movimiento_detalle,
+                    nombreJugador,
+                    movimiento.fila,
+                    movimiento.columna,
+                    movimiento.resultado,
+                    horaFormateada
+                )
+            )
+            stringBuilder.append("\n")
+        }
+
+        // Mostrar diálogo con historial
+        AlertDialog.Builder(this)
+            .setTitle(R.string.historial_movimientos)
+            .setMessage(stringBuilder.toString())
+            .setPositiveButton(R.string.ok, null)
+            .show()
+    }
+
+    // Funciones para el cronómetro
+    private fun iniciarCronometro() {
+        if (!cronometroActivo) {
+            tiempoInicioJuego = SystemClock.elapsedRealtime() - tiempoTranscurridoMs
+            handlerCronometro.postDelayed(actualizarCronometroRunnable, 1000)
+            cronometroActivo = true
+        }
+    }
+
+    private fun detenerCronometro() {
+        if (cronometroActivo) {
+            tiempoTranscurridoMs = SystemClock.elapsedRealtime() - tiempoInicioJuego
+            handlerCronometro.removeCallbacks(actualizarCronometroRunnable)
+            cronometroActivo = false
+        }
+    }
+
+    private fun reanudarCronometro() {
+        if (!cronometroActivo) {
+            tiempoInicioJuego = SystemClock.elapsedRealtime() - tiempoTranscurridoMs
+            handlerCronometro.postDelayed(actualizarCronometroRunnable, 1000)
+            cronometroActivo = true
+        }
+    }
+
+    private fun actualizarCronometro() {
+        tiempoTranscurridoMs = SystemClock.elapsedRealtime() - tiempoInicioJuego
+
+        // Formatear tiempo
+        val segundos = (tiempoTranscurridoMs / 1000).toInt() % 60
+        val minutos = (tiempoTranscurridoMs / (1000 * 60)).toInt() % 60
+
+        // Actualizar TextView
+        tvTiempoJuego.text = String.format(Locale.getDefault(), "%02d:%02d", minutos, segundos)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Asegurar que se detiene el cronómetro al destruir la actividad
+        detenerCronometro()
+    }
+}

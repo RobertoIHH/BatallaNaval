@@ -3,9 +3,14 @@ package com.example.batallanavalgame
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
+import android.util.Xml
+import android.view.View
 import android.widget.Toast
 import com.google.android.material.snackbar.Snackbar
-import android.view.View
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import org.xmlpull.v1.XmlPullParser
+import java.io.*
 
 /**
  * Gestiona todas las operaciones de guardado/carga usando las implementaciones específicas
@@ -24,6 +29,7 @@ class SaveGameManager(private val context: Context) {
     // Dependencias para los distintos formatos
     private val jsonSaveFormat = JsonSaveFormat(context)
     private val alternativeSaveFormats = AlternativeSaveFormats(context)
+    private val gson: Gson = SaveGameUtils.createGson()
 
     companion object {
         private const val PREFS_NAME = "batalla_naval_prefs"
@@ -33,7 +39,10 @@ class SaveGameManager(private val context: Context) {
         private const val KEY_GAMES_PLAYED = "partidas_jugadas"
         private const val TAG = "SaveGameManager"
 
-        // Nombres de archivos para diferentes formatos son ahora importados de SaveGameUtils
+        // Constantes para nombres de archivos
+        const val SAVE_FILE_JSON = "batalla_naval_save.json"
+        const val SAVE_FILE_XML = "batalla_naval_save.xml"
+        const val SAVE_FILE_TEXT = "batalla_naval_save.txt"
     }
 
     /**
@@ -143,6 +152,24 @@ class SaveGameManager(private val context: Context) {
         }
 
         return estado
+    }
+
+    // Métodos para extraer tableros de los mapas
+    private fun extraerTablero(data: Any?): Array<Array<EstadoCelda>>? {
+        if (data == null) return null
+
+        // Convertimos de vuelta a JSON y utilizamos Gson para la deserialización
+        val json = gson.toJson(data)
+        val type = object : TypeToken<Array<Array<EstadoCelda>>>() {}.type
+        return gson.fromJson(json, type)
+    }
+
+    private fun extraerTableroAtaques(data: Any?): Array<Array<Boolean>>? {
+        if (data == null) return null
+
+        val json = gson.toJson(data)
+        val type = object : TypeToken<Array<Array<Boolean>>>() {}.type
+        return gson.fromJson(json, type)
     }
 
     // Guarda el formato preferido del usuario
