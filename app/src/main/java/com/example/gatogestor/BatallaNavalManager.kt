@@ -1,5 +1,4 @@
 package com.example.batallanavalgame
-
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
