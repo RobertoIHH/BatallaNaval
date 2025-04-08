@@ -1,6 +1,7 @@
 package com.example.batallanavalgame
 
 import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -13,8 +14,15 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
 import java.text.SimpleDateFormat
 import java.util.*
+import android.util.Log
 
 class BatallaNavalActivity : AppCompatActivity() {
+
+    private val PERMISSIONS_REQUEST_CODE = 101
+    private val REQUIRED_PERMISSIONS = arrayOf(
+        Manifest.permission.READ_EXTERNAL_STORAGE,
+        Manifest.permission.WRITE_EXTERNAL_STORAGE
+    )
 
     // Constantes
     private val TABLERO_SIZE = 10
@@ -125,6 +133,37 @@ class BatallaNavalActivity : AppCompatActivity() {
             // Iniciar juego nuevo y cronómetro
             iniciarCronometro()
             actualizarUI()
+        }
+        // Verificar y solicitar permisos
+        if (!hasPermissions()) {
+            requestPermissions()
+        }
+    }
+    private fun hasPermissions(): Boolean {
+        return REQUIRED_PERMISSIONS.all {
+            ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+
+    private fun requestPermissions() {
+        ActivityCompat.requestPermissions(
+            this, REQUIRED_PERMISSIONS, PERMISSIONS_REQUEST_CODE)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == PERMISSIONS_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+                // Permisos concedidos
+                Toast.makeText(this, "Permisos concedidos para acceder a archivos externos", Toast.LENGTH_SHORT).show()
+            } else {
+                // Permisos denegados
+                Toast.makeText(this, "Se requieren permisos para guardar/cargar partidas en almacenamiento externo", Toast.LENGTH_LONG).show()
+            }
         }
     }
 
@@ -779,59 +818,70 @@ class BatallaNavalActivity : AppCompatActivity() {
     }
 
     private fun cargarPartida() {
-        val estadoPartida = batallaNavalManager.cargarPartida()
+        try {
+            val estadoPartida = batallaNavalManager.cargarPartida()
 
-        if (estadoPartida == null) {
-            Toast.makeText(this, R.string.no_partida_guardada, Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        // Cargar todos los datos del estado
-        faseActual = estadoPartida.faseActual
-        jugadorActual = estadoPartida.jugadorActual
-        barcoActualIndex = estadoPartida.barcoActualIndex
-        orientacionHorizontal = estadoPartida.orientacionHorizontal
-
-        // Copiar tableros
-        for (i in 0 until TABLERO_SIZE) {
-            for (j in 0 until TABLERO_SIZE) {
-                tableroJugador1[i][j] = estadoPartida.tableroJugador1[i][j]
-                tableroJugador2[i][j] = estadoPartida.tableroJugador2[i][j]
-                tableroAtaquesJugador1[i][j] = estadoPartida.tableroAtaquesJugador1[i][j]
-                tableroAtaquesJugador2[i][j] = estadoPartida.tableroAtaquesJugador2[i][j]
+            if (estadoPartida == null) {
+                Toast.makeText(this, R.string.no_partida_guardada, Toast.LENGTH_SHORT).show()
+                // Si no hay partida guardada, iniciar juego nuevo
+                iniciarCronometro()
+                actualizarUI()
+                return
             }
-        }
 
-        // Cargar barcos
-        barcosJugador1.clear()
-        barcosJugador1.addAll(estadoPartida.barcosJugador1)
+            // Cargar todos los datos del estado
+            faseActual = estadoPartida.faseActual
+            jugadorActual = estadoPartida.jugadorActual
+            barcoActualIndex = estadoPartida.barcoActualIndex
+            orientacionHorizontal = estadoPartida.orientacionHorizontal
 
-        barcosJugador2.clear()
-        barcosJugador2.addAll(estadoPartida.barcosJugador2)
+            // Copiar tableros
+            for (i in 0 until TABLERO_SIZE) {
+                for (j in 0 until TABLERO_SIZE) {
+                    tableroJugador1[i][j] = estadoPartida.tableroJugador1[i][j]
+                    tableroJugador2[i][j] = estadoPartida.tableroJugador2[i][j]
+                    tableroAtaquesJugador1[i][j] = estadoPartida.tableroAtaquesJugador1[i][j]
+                    tableroAtaquesJugador2[i][j] = estadoPartida.tableroAtaquesJugador2[i][j]
+                }
+            }
 
-        // Cargar nombres y puntuaciones
-        nombreJugador1 = estadoPartida.nombreJugador1
-        nombreJugador2 = estadoPartida.nombreJugador2
-        puntajeJugador1 = estadoPartida.puntajeJugador1
-        puntajeJugador2 = estadoPartida.puntajeJugador2
+            // Cargar barcos
+            barcosJugador1.clear()
+            barcosJugador1.addAll(estadoPartida.barcosJugador1)
 
-        // Cargar tiempo transcurrido (convertir de segundos a ms)
-        tiempoTranscurridoMs = estadoPartida.tiempoJuegoSegundos * 1000
+            barcosJugador2.clear()
+            barcosJugador2.addAll(estadoPartida.barcosJugador2)
 
-        // Cargar historial de movimientos
-        historialMovimientos.clear()
-        historialMovimientos.addAll(estadoPartida.historialMovimientos)
+            // Cargar nombres y puntuaciones
+            nombreJugador1 = estadoPartida.nombreJugador1
+            nombreJugador2 = estadoPartida.nombreJugador2
+            puntajeJugador1 = estadoPartida.puntajeJugador1
+            puntajeJugador2 = estadoPartida.puntajeJugador2
 
-        // Iniciar cronómetro con el tiempo cargado
-        if (faseActual == FaseJuego.ATAQUE) {
+            // Cargar tiempo transcurrido (convertir de segundos a ms)
+            tiempoTranscurridoMs = estadoPartida.tiempoJuegoSegundos * 1000
+
+            // Cargar historial de movimientos
+            historialMovimientos.clear()
+            historialMovimientos.addAll(estadoPartida.historialMovimientos)
+
+            // Iniciar cronómetro con el tiempo cargado
+            if (faseActual == FaseJuego.ATAQUE) {
+                iniciarCronometro()
+            }
+
+            // Actualizar la UI
+            actualizarUI()
+
+            // Mostrar resumen de la partida cargada
+            mostrarResumenPartidaCargada(estadoPartida)
+        } catch (e: Exception) {
+            Log.e("BatallaNaval", "Error cargando partida: ${e.message}")
+            Toast.makeText(this, "Error al cargar partida: ${e.message}", Toast.LENGTH_LONG).show()
+            // Si hay un error, iniciar juego nuevo
             iniciarCronometro()
+            actualizarUI()
         }
-
-        // Actualizar la UI
-        actualizarUI()
-
-        // Mostrar resumen de la partida cargada
-        mostrarResumenPartidaCargada(estadoPartida)
     }
 
     private fun mostrarResumenPartidaCargada(estadoPartida: EstadoPartida) {

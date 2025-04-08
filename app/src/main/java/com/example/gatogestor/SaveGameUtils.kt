@@ -10,6 +10,8 @@ import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonSerializer
 import com.google.gson.JsonDeserializer
 import java.lang.reflect.Type
+import android.util.Log
+import java.lang.reflect.ParameterizedType
 
 /**
  * Utilidades comunes para todas las clases de guardado
@@ -66,55 +68,106 @@ object SaveGameUtils {
             typeOfT: Type,
             context: JsonDeserializationContext
         ): Array<Array<T>> {
-            val jsonArray = json.asJsonArray
-            val outerArray = ArrayList<Array<T>>()
+            try {
+                val jsonArray = json.asJsonArray
+                val outerArray = ArrayList<Array<Any?>>()
 
-            for (innerJson in jsonArray) {
-                val innerJsonArray = innerJson.asJsonArray
-                val innerArray = java.lang.reflect.Array.newInstance(
-                    getElementType(typeOfT),
-                    innerJsonArray.size()
-                ) as Array<T>
+                // Determinar el tipo de elemento
+                val elementClass = getElementClass(typeOfT)
 
-                for (i in 0 until innerJsonArray.size()) {
-                    val element = context.deserialize<T>(
-                        innerJsonArray.get(i),
-                        getElementType(typeOfT)
-                    )
-                    innerArray[i] = element
+                for (innerJson in jsonArray) {
+                    val innerJsonArray = innerJson.asJsonArray
+                    val innerArray = java.lang.reflect.Array.newInstance(
+                        elementClass,
+                        innerJsonArray.size()
+                    ) as Array<Any?>
+
+                    for (i in 0 until innerJsonArray.size()) {
+                        try {
+                            innerArray[i] = context.deserialize<Any>(
+                                innerJsonArray.get(i),
+                                elementClass
+                            )
+                        } catch (e: Exception) {
+                            Log.e("SaveGameUtils", "Error deserializando elemento: ${e.message}")
+                            // Valor por defecto según el tipo
+                            innerArray[i] = getDefaultValue(elementClass)
+                        }
+                    }
+
+                    outerArray.add(innerArray)
                 }
 
-                outerArray.add(innerArray)
-            }
+                // Crear array final
+                val resultArray = java.lang.reflect.Array.newInstance(
+                    getArrayClass(elementClass),
+                    outerArray.size
+                )
 
-            return java.lang.reflect.Array.newInstance(
-                getArrayType(typeOfT),
-                outerArray.size
-            ).also { array ->
                 for (i in outerArray.indices) {
-                    java.lang.reflect.Array.set(array, i, outerArray[i])
+                    java.lang.reflect.Array.set(resultArray, i, outerArray[i])
                 }
-            } as Array<Array<T>>
-        }
 
-        private fun getElementType(type: Type): Class<*> {
-            // Extraer el tipo de elemento del array bidimensional
-            val elementType = (type as java.lang.reflect.ParameterizedType)
-                .actualTypeArguments[0] as java.lang.reflect.ParameterizedType
-
-            val className = elementType.actualTypeArguments[0].toString()
-
-            return when {
-                className.contains("EstadoCelda") -> EstadoCelda::class.java
-                className.contains("Boolean") -> Boolean::class.java
-                else -> Class.forName(className.replace("class ", ""))
+                return resultArray as Array<Array<T>>
+            } catch (e: Exception) {
+                Log.e("SaveGameUtils", "Error completo deserializando: ${e.message}")
+                return createEmptyArray(typeOfT) as Array<Array<T>>
             }
         }
 
-        private fun getArrayType(type: Type): Class<*> {
-            // Obtener el tipo del array
-            val elementType = getElementType(type)
-            return java.lang.reflect.Array.newInstance(elementType, 0).javaClass
+        private fun getDefaultValue(clazz: Class<*>): Any? {
+            return when (clazz) {
+                EstadoCelda::class.java -> EstadoCelda.VACIA
+                Boolean::class.java -> false
+                String::class.java -> ""
+                Int::class.java -> 0
+                Long::class.java -> 0L
+                else -> null
+            }
+        }
+
+        private fun getElementClass(type: Type): Class<*> {
+            try {
+                // Intentar identificar el tipo de elemento basado en el nombre del tipo
+                val typeName = type.toString()
+
+                if (typeName.contains("EstadoCelda")) {
+                    return EstadoCelda::class.java
+                } else if (typeName.contains("Boolean")) {
+                    return Boolean::class.java
+                }
+
+                // Si el tipo es parametrizado, intentar extraer información
+                if (type is ParameterizedType) {
+                    // Intentar extraer el tipo de elemento
+                    val argType = type.actualTypeArguments[0]
+                    val argTypeName = argType.toString()
+
+                    if (argTypeName.contains("EstadoCelda")) {
+                        return EstadoCelda::class.java
+                    } else if (argTypeName.contains("Boolean")) {
+                        return Boolean::class.java
+                    }
+                }
+
+                // Por defecto, usar Object como tipo seguro
+                return Any::class.java
+            } catch (e: Exception) {
+                Log.e("SaveGameUtils", "Error determinando tipo de elemento: ${e.message}")
+                return Any::class.java
+            }
+        }
+
+        private fun getArrayClass(elementClass: Class<*>): Class<*> {
+            return java.lang.reflect.Array.newInstance(elementClass, 0).javaClass
+        }
+
+        private fun createEmptyArray(type: Type): Array<Array<Any?>> {
+            val elementClass = getElementClass(type)
+
+            return Array(2) {
+                Array<Any?>(2) { getDefaultValue(elementClass) }
+            }
         }
     }
 }

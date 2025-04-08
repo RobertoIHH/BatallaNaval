@@ -1,80 +1,85 @@
 package com.example.batallanavalgame
 
-/**
- * Clase que sirve como fachada para gestionar las operaciones de guardado y carga
- * del juego. Simplifica el acceso a los diferentes formatos de guardado.
- */
-class BatallaNavalManager {
+import android.view.View
+import android.widget.*
+import java.util.*
+import android.util.Log
 
-    // Esta clase es solo un adaptador que utiliza SaveGameManager para implementar
-    // sus operaciones. Se mantiene por compatibilidad con el código existente.
+class BatallaNavalManager(private val context: Context) {
+    private val internalSaveManager = SaveGameManager(context)
+    private val dataStoreSaveManager = DataStoreSaveManager(context)
+    private val externalSaveManager = ExternalStorageSaveManager(context)
 
-    private val saveGameManager: SaveGameManager
-
-    constructor(context: android.content.Context) {
-        saveGameManager = SaveGameManager(context)
+    enum class SaveLocation {
+        INTERNAL, DATASTORE, EXTERNAL
     }
 
-    /**
-     * Guarda una partida en el formato de guardado seleccionado por el usuario
-     */
-    fun guardarPartida(estadoPartida: EstadoPartida, vista: android.view.View? = null) {
-        saveGameManager.guardarPartida(estadoPartida, vista = vista)
+    // Ubicación de guardado por defecto
+    private var saveLocation = SaveLocation.INTERNAL
+
+    fun setSaveLocation(location: SaveLocation) {
+        saveLocation = location
     }
 
-    /**
-     * Carga una partida desde cualquier formato disponible
-     */
+    fun guardarPartida(estadoPartida: EstadoPartida, vista: View? = null) {
+        try {
+            // Guardar en la ubicación seleccionada
+            val success = when (saveLocation) {
+                SaveLocation.INTERNAL -> {
+                    internalSaveManager.guardarPartida(estadoPartida)
+                    true
+                }
+                SaveLocation.DATASTORE -> {
+                    dataStoreSaveManager.guardarPartida(estadoPartida)
+                    true
+                }
+                SaveLocation.EXTERNAL -> {
+                    externalSaveManager.guardarPartida(estadoPartida)
+                }
+            }
+
+            if (success) {
+                Toast.makeText(context, R.string.partida_guardada, Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(context, "Error al guardar partida", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Log.e("BatallaNavalManager", "Error guardando partida: ${e.message}")
+            Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     fun cargarPartida(): EstadoPartida? {
-        return saveGameManager.cargarPartida()
-    }
+        try {
+            // Intentar cargar desde la ubicación seleccionada
+            val estadoPartida = when (saveLocation) {
+                SaveLocation.INTERNAL -> internalSaveManager.cargarPartida()
+                SaveLocation.DATASTORE -> dataStoreSaveManager.cargarPartida()
+                SaveLocation.EXTERNAL -> externalSaveManager.cargarPartida()
+            }
 
-    /**
-     * Obtiene el formato de guardado seleccionado por el usuario
-     */
-    fun getSavedFormat(): SaveGameManager.SaveFormat {
-        return saveGameManager.getSavedFormat()
-    }
+            // Si no se encontró en la ubicación seleccionada, intentar las otras
+            if (estadoPartida == null && saveLocation != SaveLocation.INTERNAL) {
+                Log.d("BatallaNavalManager", "Intentando cargar desde almacenamiento interno...")
+                return internalSaveManager.cargarPartida()
+            }
 
-    /**
-     * Guarda el formato de guardado seleccionado por el usuario
-     */
-    fun guardarFormatoSeleccionado(formato: SaveGameManager.SaveFormat) {
-        saveGameManager.guardarFormatoSeleccionado(formato)
-    }
+            if (estadoPartida == null && saveLocation != SaveLocation.DATASTORE) {
+                Log.d("BatallaNavalManager", "Intentando cargar desde DataStore...")
+                return dataStoreSaveManager.cargarPartida()
+            }
 
-    /**
-     * Registra una victoria para el jugador indicado
-     */
-    fun registrarVictoria(jugador: Int) {
-        saveGameManager.registrarVictoria(jugador)
-    }
+            if (estadoPartida == null && saveLocation != SaveLocation.EXTERNAL) {
+                Log.d("BatallaNavalManager", "Intentando cargar desde almacenamiento externo...")
+                return externalSaveManager.cargarPartida()
+            }
 
-    /**
-     * Obtiene el número de victorias del jugador indicado
-     */
-    fun getVictoriasJugador(jugador: Int): Int {
-        return saveGameManager.getVictoriasJugador(jugador)
-    }
+            return estadoPartida
 
-    /**
-     * Obtiene el número total de partidas jugadas
-     */
-    fun getPartidasJugadas(): Int {
-        return saveGameManager.getPartidasJugadas()
-    }
-
-    /**
-     * Resetea todas las estadísticas de juego
-     */
-    fun resetearEstadisticas() {
-        saveGameManager.resetearEstadisticas()
-    }
-
-    /**
-     * Borra los archivos de partidas guardadas
-     */
-    fun borrarPartidaGuardada() {
-        saveGameManager.borrarPartidaGuardada()
+        } catch (e: Exception) {
+            Log.e("BatallaNavalManager", "Error cargando partida: ${e.message}")
+            Toast.makeText(context, "Error al cargar: ${e.message}", Toast.LENGTH_SHORT).show()
+            return null
+        }
     }
 }
