@@ -4,11 +4,16 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.provider.Settings
 import android.view.MotionEvent
 import android.view.View
 import android.widget.*
@@ -66,6 +71,40 @@ class BatallaNavalActivity : AppCompatActivity() {
     private var nombreJugador2 = "Jugador 2"
     private var puntajeJugador1 = 0
     private var puntajeJugador2 = 0
+
+    private val REQUEST_CODE_MANAGE_EXTERNAL_STORAGE = 1001 // Puedes cambiar el valor entero a cualquier número que dese
+
+    private fun solicitarPermisoManageExternalStorage() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager()) {
+                val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                intent.data = Uri.parse("package:$packageName")
+                startActivityForResult(intent, REQUEST_CODE_MANAGE_EXTERNAL_STORAGE)
+            }
+        }
+    }
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CODE_MANAGE_EXTERNAL_STORAGE) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                if (Environment.isExternalStorageManager()) {
+                    // Permiso concedido
+                    Toast.makeText(this, "Permiso concedido", Toast.LENGTH_SHORT).show()
+                } else {
+                    // Permiso denegado
+                    Toast.makeText(this, "Permiso denegado", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+    private fun hasManageExternalStoragePermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Environment.isExternalStorageManager()
+        } else {
+            // En versiones anteriores a Android 11, verificar los permisos de almacenamiento externo
+            ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+        }
+    }
 
     // Control de tiempo
     private var tiempoInicioJuego = 0L
@@ -141,6 +180,7 @@ class BatallaNavalActivity : AppCompatActivity() {
 
         // Inicializar UI components
         inicializarViews()
+        configurarSelectorTema()
 
         // Obtener nombres de los jugadores si se proporcionaron
         nombreJugador1 = intent.getStringExtra("JUGADOR1") ?: "Jugador 1"
@@ -172,7 +212,11 @@ class BatallaNavalActivity : AppCompatActivity() {
         }
         // Verificar y solicitar permisos
         if (!hasPermissions()) {
-            requestPermissions()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                solicitarPermisoManageExternalStorage()
+            } else {
+                requestPermissions()
+            }
         }
     }
     private fun hasPermissions(): Boolean {
@@ -215,18 +259,13 @@ class BatallaNavalActivity : AppCompatActivity() {
         }
     }
     private fun configurarSelectorTema() {
-        // Crear un Switch para seleccionar tema
-        val switchTema = Switch(this)
-        switchTema.text = getString(R.string.tema_guinda)
+        // Obtener el switch que ya existe en el layout
+        val switchTema = findViewById<Switch>(R.id.switchTema)
 
         // Configurar el estado inicial basado en la preferencia guardada
         val sharedPreferences = getSharedPreferences(THEME_PREF_NAME, Context.MODE_PRIVATE)
         val usarTemaGuinda = sharedPreferences.getBoolean(KEY_THEME, false)
         switchTema.isChecked = usarTemaGuinda
-
-        // Añadir el Switch a la parte superior de la vista
-        val container = findViewById<LinearLayout>(R.id.container_principal)
-        container.addView(switchTema, 0) // Añadir al principio
 
         // Configurar el listener
         switchTema.setOnCheckedChangeListener { _, isChecked ->
