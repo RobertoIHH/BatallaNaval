@@ -1,9 +1,11 @@
 package com.example.batallanavalgame
 
+import android.view.View
+import android.widget.*
+import java.util.*
+import android.util.Log
 import android.content.Context
 import android.content.SharedPreferences
-import android.util.Log
-import android.view.View
 import android.widget.Toast
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
@@ -41,6 +43,9 @@ class SaveGameManager(private val context: Context) {
         const val SAVE_FILE_JSON = "batalla_naval_save.json"
         const val SAVE_FILE_XML = "batalla_naval_save.xml"
         const val SAVE_FILE_TEXT = "batalla_naval_save.txt"
+
+        // Archivo temporal para cambio de tema
+        const val TEMP_THEME_CHANGE_FILE = "temp_theme_change.json"
     }
 
     /**
@@ -359,5 +364,49 @@ class SaveGameManager(private val context: Context) {
         // Borrar todos los formatos
         jsonSaveFormat.borrarArchivoGuardado()
         alternativeSaveFormats.borrarArchivosGuardados()
+    }
+
+    /**
+     * Guarda temporalmente el estado del juego durante un cambio de tema
+     */
+    fun guardarPartidaTemporalCambioTema(estadoJuego: EstadoPartida) {
+        try {
+            val jsonEstado = gson.toJson(estadoJuego)
+            val file = File(context.filesDir, TEMP_THEME_CHANGE_FILE)
+            FileWriter(file).use { writer ->
+                writer.write(jsonEstado)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error guardando estado temporal: ${e.message}")
+        }
+    }
+
+    /**
+     * Carga el estado temporal guardado durante el cambio de tema
+     */
+    fun cargarPartidaTemporalCambioTema(): EstadoPartida? {
+        val file = File(context.filesDir, TEMP_THEME_CHANGE_FILE)
+        if (!file.exists()) return null
+
+        return try {
+            val jsonEstado = FileReader(file).use { reader ->
+                reader.readText()
+            }
+            gson.fromJson(jsonEstado, EstadoPartida::class.java)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error cargando estado temporal: ${e.message}")
+            null
+        }
+    }
+
+    /**
+     * Borra el archivo de estado temporal
+     */
+    fun borrarPartidaTemporalCambioTema() {
+        try {
+            File(context.filesDir, TEMP_THEME_CHANGE_FILE).delete()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error borrando archivo temporal: ${e.message}")
+        }
     }
 }

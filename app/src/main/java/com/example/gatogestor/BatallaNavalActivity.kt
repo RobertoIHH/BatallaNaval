@@ -6,6 +6,7 @@ import androidx.core.app.ActivityCompat
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -61,6 +62,7 @@ class BatallaNavalActivity : AppCompatActivity() {
     private lateinit var spinnerFormatoGuardado: Spinner
     private lateinit var btnVerHistorial: Button
     private lateinit var btnEstadisticas: Button
+    private lateinit var btnCargarPartida: Button
 
     // Game State
     private var faseActual = FaseJuego.CONFIGURACION
@@ -125,6 +127,34 @@ class BatallaNavalActivity : AppCompatActivity() {
         val sharedPreferences = getSharedPreferences(THEME_PREF_NAME, Context.MODE_PRIVATE)
         sharedPreferences.edit().putBoolean(KEY_THEME, usarTemaGuinda).apply()
 
+        // Guardar el estado actual del cronómetro para restaurarlo después
+        val estadoActual = if (faseActual == FaseJuego.ATAQUE) {
+            // Guardar el estado completo del juego para preservar el tiempo y todos los datos
+            EstadoPartida(
+                faseActual,
+                jugadorActual,
+                barcoActualIndex,
+                orientacionHorizontal,
+                tableroJugador1,
+                tableroJugador2,
+                tableroAtaquesJugador1,
+                tableroAtaquesJugador2,
+                barcosJugador1,
+                barcosJugador2,
+                nombreJugador1,
+                nombreJugador2,
+                puntajeJugador1,
+                puntajeJugador2,
+                tiempoTranscurridoMs / 1000, // Convertir a segundos para guardar
+                historialMovimientos
+            )
+        } else null
+
+        // Detener el cronómetro antes de recrear la actividad
+        if (cronometroActivo) {
+            detenerCronometro()
+        }
+
         // Aplicar el tema inmediatamente
         if (usarTemaGuinda) {
             setTheme(R.style.Theme_BatallaNaval) // Tema guinda
@@ -132,8 +162,68 @@ class BatallaNavalActivity : AppCompatActivity() {
             setTheme(R.style.Theme_BatallaNavalGame) // Tema azul (por defecto)
         }
 
+        // Guardar temporalmente el estado en una preferencia antes de recrear
+        if (estadoActual != null) {
+            batallaNavalManager.guardarPartidaTemporalCambioTema(estadoActual)
+        }
+
         // Recrear la actividad para que el cambio de tema surta efecto
         recreate()
+    }
+
+    // Añadir este método al ciclo de vida para restaurar el estado después de recrear
+    override fun onPostCreate(savedInstanceState: Bundle?) {
+        super.onPostCreate(savedInstanceState)
+
+        // Verificar si había un estado temporal guardado por cambio de tema
+        val estadoTemp = batallaNavalManager.cargarPartidaTemporalCambioTema()
+        if (estadoTemp != null) {
+            // Restaurar estado
+            faseActual = estadoTemp.faseActual
+            jugadorActual = estadoTemp.jugadorActual
+            barcoActualIndex = estadoTemp.barcoActualIndex
+            orientacionHorizontal = estadoTemp.orientacionHorizontal
+
+            // Restaurar tableros
+            for (i in 0 until TABLERO_SIZE) {
+                for (j in 0 until TABLERO_SIZE) {
+                    tableroJugador1[i][j] = estadoTemp.tableroJugador1[i][j]
+                    tableroJugador2[i][j] = estadoTemp.tableroJugador2[i][j]
+                    tableroAtaquesJugador1[i][j] = estadoTemp.tableroAtaquesJugador1[i][j]
+                    tableroAtaquesJugador2[i][j] = estadoTemp.tableroAtaquesJugador2[i][j]
+                }
+            }
+
+            // Restaurar barcos
+            barcosJugador1.clear()
+            barcosJugador1.addAll(estadoTemp.barcosJugador1)
+            barcosJugador2.clear()
+            barcosJugador2.addAll(estadoTemp.barcosJugador2)
+
+            // Restaurar nombres y puntuaciones
+            nombreJugador1 = estadoTemp.nombreJugador1
+            nombreJugador2 = estadoTemp.nombreJugador2
+            puntajeJugador1 = estadoTemp.puntajeJugador1
+            puntajeJugador2 = estadoTemp.puntajeJugador2
+
+            // Restaurar tiempo
+            tiempoTranscurridoMs = estadoTemp.tiempoJuegoSegundos * 1000
+
+            // Restaurar historial
+            historialMovimientos.clear()
+            historialMovimientos.addAll(estadoTemp.historialMovimientos)
+
+            // Actualizar UI
+            actualizarUI()
+
+            // Reiniciar cronómetro si estaba en fase de ataque
+            if (faseActual == FaseJuego.ATAQUE) {
+                reanudarCronometro()
+            }
+
+            // Limpiar estado temporal
+            batallaNavalManager.borrarPartidaTemporalCambioTema()
+        }
     }
 
     // Historial de movimientos
@@ -199,6 +289,7 @@ class BatallaNavalActivity : AppCompatActivity() {
         aplicarEstiloGuinda()
 
 
+
         // Inicializar tablero
         inicializarTablero()
 
@@ -254,6 +345,11 @@ class BatallaNavalActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+
+        // Reajustar tablero cuando la actividad vuelve a primer plano
+        ajustarTableros()
+
+        // Continuar con el comportamiento original de onResume
         if (faseActual == FaseJuego.ATAQUE) {
             reanudarCronometro()
         }
@@ -292,6 +388,7 @@ class BatallaNavalActivity : AppCompatActivity() {
         spinnerFormatoGuardado = findViewById(R.id.spinnerFormatoGuardado)
         btnVerHistorial = findViewById(R.id.btnVerHistorial)
         btnEstadisticas = findViewById(R.id.btnEstadisticas)
+        btnCargarPartida = findViewById(R.id.btnCargarPartida)
     }
 
     private fun configurarSpinnerFormatoGuardado() {
@@ -396,7 +493,19 @@ class BatallaNavalActivity : AppCompatActivity() {
         btnEstadisticas.setOnClickListener {
             mostrarEstadisticas()
         }
+        btnCargarPartida.setOnClickListener {
+            cargarPartida()
+        }
     }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+
+        // Al cambiar la configuración (como la orientación), reajustar tablero
+        ajustarTableros()
+    }
+
+
 
     private fun mostrarEstadisticas() {
         val mensaje = StringBuilder()
@@ -419,22 +528,33 @@ class BatallaNavalActivity : AppCompatActivity() {
             .show()
     }
 
+
+
+
     private fun inicializarTablero() {
         glTablero.removeAllViews()
+        glTablero.rowCount = TABLERO_SIZE
+        glTablero.columnCount = TABLERO_SIZE
+
+        // Obtener dimensiones de la pantalla para cálculos iniciales
+        val displayMetrics = resources.displayMetrics
+        val screenWidth = displayMetrics.widthPixels
+
+        // Calcular tamaño de celda basado en el ancho disponible
+        // Tomamos en cuenta el padding y un pequeño margen entre celdas
+        val availableWidth = screenWidth - glTablero.paddingLeft - glTablero.paddingRight
+        val cellSize = (availableWidth / TABLERO_SIZE) - 2 // 2px para pequeños márgenes
 
         for (fila in 0 until TABLERO_SIZE) {
             for (columna in 0 until TABLERO_SIZE) {
                 val celda = View(this)
                 val params = GridLayout.LayoutParams()
 
-                // Calcular tamaño de celda basado en el tamaño de pantalla
-                val size = (resources.displayMetrics.widthPixels - glTablero.paddingLeft -
-                        glTablero.paddingRight - (TABLERO_SIZE * 2)) / TABLERO_SIZE
-
-                params.width = size
-                params.height = size
+                params.width = cellSize
+                params.height = cellSize
                 params.rowSpec = GridLayout.spec(fila)
                 params.columnSpec = GridLayout.spec(columna)
+                params.setMargins(1, 1, 1, 1)
 
                 celda.layoutParams = params
                 celda.background = ContextCompat.getDrawable(this, R.drawable.cell_empty)
@@ -496,6 +616,9 @@ class BatallaNavalActivity : AppCompatActivity() {
                 glTablero.addView(celda)
             }
         }
+
+        // Después de crear toda la cuadrícula, ajustar su tamaño final
+        ajustarTableros()
     }
 
     private fun aplicarEstiloGuinda() {
@@ -614,35 +737,60 @@ class BatallaNavalActivity : AppCompatActivity() {
         val screenWidth = displayMetrics.widthPixels
         val screenHeight = displayMetrics.heightPixels
 
-        // Calcular el tamaño máximo del tablero (80% del ancho de pantalla)
-        // Reducido de 90% a 80% para dejar más espacio
-        val tableroSize = (screenWidth * 0.8).toInt()
-        // Asegurar que el tablero no sea más grande que el 40% de la altura de la pantalla
-        val maxHeight = (screenHeight * 0.4).toInt()
-        val finalSize = minOf(tableroSize, maxHeight)
+        // Determinar el tamaño óptimo del tablero considerando ambas dimensiones
+        // Usar el menor entre: 90% del ancho o 50% de la altura para asegurar que sea visible
+        val maxWidth = (screenWidth * 0.9).toInt()
+        val maxHeight = (screenHeight * 0.5).toInt()
 
-        val cellSize = finalSize / 10 // 10 celdas por lado
+        // El tamaño final será el menor entre ancho y alto disponibles
+        val tableroSize = minOf(maxWidth, maxHeight)
 
-        // Aplicar al tablero principal
+        // El tamaño de cada celda se calcula según el tablero
+        val cellSize = (tableroSize / TABLERO_SIZE).toInt()
+
+        // Aplicar medidas al contenedor del tablero
         val paramsTablero = glTablero.layoutParams
-        paramsTablero.width = finalSize
-        paramsTablero.height = finalSize
+        paramsTablero.width = tableroSize
+        paramsTablero.height = tableroSize
         glTablero.layoutParams = paramsTablero
 
-        // Ajustar cada celda del tablero
+        // Configurar cada celda individual
         for (i in 0 until glTablero.childCount) {
             val celda = glTablero.getChildAt(i)
-            if (celda.layoutParams is GridLayout.LayoutParams) {
-                val paramsCelda = celda.layoutParams as GridLayout.LayoutParams
-                paramsCelda.width = cellSize
-                paramsCelda.height = cellSize
-                // Reducir los márgenes para celdas más compactas
-                paramsCelda.setMargins(1, 1, 1, 1)
-                celda.layoutParams = paramsCelda
+            val params = celda.layoutParams as GridLayout.LayoutParams
+
+            // Ajustar el tamaño
+            params.width = cellSize
+            params.height = cellSize
+
+            // Reducir márgenes para usar mejor el espacio disponible
+            // pero mantener un pequeño espacio para distinguir las celdas
+            params.setMargins(1, 1, 1, 1)
+
+            celda.layoutParams = params
+        }
+
+        // Asegurar que el tablero tenga suficiente espacio después del ajuste
+        glTablero.post {
+            // Si después de aplicar el layout vemos que hay problemas,
+            // podemos hacer ajustes adicionales aquí
+            val actualWidth = glTablero.width
+            val actualHeight = glTablero.height
+
+            if (actualWidth < cellSize * TABLERO_SIZE || actualHeight < cellSize * TABLERO_SIZE) {
+                // Reducir tamaño de celdas si es necesario
+                val ajustedCellSize = minOf(actualWidth, actualHeight) / TABLERO_SIZE
+
+                for (i in 0 until glTablero.childCount) {
+                    val celda = glTablero.getChildAt(i)
+                    val params = celda.layoutParams as GridLayout.LayoutParams
+                    params.width = ajustedCellSize
+                    params.height = ajustedCellSize
+                    celda.layoutParams = params
+                }
             }
         }
     }
-
     private fun actualizarVistaTablero() {
         val tableroActual: Array<Array<EstadoCelda>>
         val tableroAtaques: Array<Array<Boolean>>
@@ -911,6 +1059,9 @@ class BatallaNavalActivity : AppCompatActivity() {
     private fun cambiarJugador() {
         // Cambiar al otro jugador
         jugadorActual = if (jugadorActual == 1) 2 else 1
+
+        // Obtener el nombre del jugador actual (usar nombres personalizados)
+        val nombreJugadorActual = if (jugadorActual == 1) nombreJugador1 else nombreJugador2
 
         // Diálogo informativo
         AlertDialog.Builder(this)

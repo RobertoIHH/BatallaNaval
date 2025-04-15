@@ -96,5 +96,6 @@
 
     <string name="partidas_jugadas_total">Total de partidas jugadas: %1$d</string>
     <string name="tema_guinda">Tema Guinda IPN</string>
+    <string name="turno_jugador_nombre">Turno de %1$s</string>
 
 </resources>
