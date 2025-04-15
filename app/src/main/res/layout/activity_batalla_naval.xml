@@ -13,6 +13,15 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+        <!-- Selector de tema -->
+        <Switch
+            android:id="@+id/switchTema"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:text="@string/tema_guinda"
+            android:layout_marginBottom="8dp"/>
+
         <!-- Estado y jugador actual -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -247,7 +256,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="4dp"
-                    android:text="@string/nueva_partida" />
+                    android:text="@string/cargar_partida" />
             </LinearLayout>
 
             <!-- Botones adicionales para historial y estadísticas -->

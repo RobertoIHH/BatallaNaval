@@ -98,14 +98,11 @@ class BatallaNavalManager(private val context: Context) {
         internalSaveManager.registrarVictoria(jugador)
     }
 
-    fun getSavedFormat(): SaveFormat {
+    fun getSavedFormat(): SaveGameManager.SaveFormat {
         return internalSaveManager.getSavedFormat()
     }
 
-    fun guardarFormatoSeleccionado(formato: SaveFormat) {
+    fun guardarFormatoSeleccionado(formato: SaveGameManager.SaveFormat) {
         internalSaveManager.guardarFormatoSeleccionado(formato)
     }
-
-    // Alias para el tipo de formato
-    typealias SaveFormat = SaveGameManager.SaveFormat
 }

@@ -293,20 +293,22 @@ class SaveGameManager(private val context: Context) {
 
         // Crear un estado de partida con los datos disponibles
         return EstadoPartida(
-            FaseJuego.CONFIGURACION, // Fase por defecto
-            1, // Jugador actual por defecto
-            0, // Índice de barco actual por defecto
-            true, // Orientación horizontal por defecto
-            tableroJugador1,
-            tableroJugador2,
-            tableroAtaquesJugador1,
-            tableroAtaquesJugador2,
-            barcosJugador1,
-            barcosJugador2,
-            "Jugador 1", // Nombre predeterminado
-            "Jugador 2", // Nombre predeterminado
-            0, // Tiempo de juego por defecto
-            emptyList() // Historial de movimientos vacío
+            faseActual = FaseJuego.CONFIGURACION, // Fase por defecto
+            jugadorActual = 1, // Jugador actual por defecto
+            barcoActualIndex = 0, // Índice de barco actual por defecto
+            orientacionHorizontal = true, // Orientación horizontal por defecto
+            tableroJugador1 = tableroJugador1,
+            tableroJugador2 = tableroJugador2,
+            tableroAtaquesJugador1 = tableroAtaquesJugador1,
+            tableroAtaquesJugador2 = tableroAtaquesJugador2,
+            barcosJugador1 = barcosJugador1,
+            barcosJugador2 = barcosJugador2,
+            nombreJugador1 = "Jugador 1", // Nombre predeterminado
+            nombreJugador2 = "Jugador 2", // Nombre predeterminado
+            puntajeJugador1 = 0, // Puntuación por defecto
+            puntajeJugador2 = 0, // Puntuación por defecto
+            tiempoJuegoSegundos = 0L, // Tiempo de juego por defecto
+            historialMovimientos = emptyList() // Historial de movimientos vacío
         )
     }
 

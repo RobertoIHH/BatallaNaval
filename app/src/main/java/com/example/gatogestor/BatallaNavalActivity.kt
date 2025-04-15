@@ -78,9 +78,28 @@ class BatallaNavalActivity : AppCompatActivity() {
             handlerCronometro.postDelayed(this, 1000) // Actualizar cada segundo
         }
     }
+    private val THEME_PREF_NAME = "tema_preferido"
+    private val KEY_THEME = "tema_actual"
+
+    private fun cambiarTema(usarTemaGuinda: Boolean) {
+        // Guardar la preferencia de tema
+        val sharedPreferences = getSharedPreferences(THEME_PREF_NAME, Context.MODE_PRIVATE)
+        sharedPreferences.edit().putBoolean(KEY_THEME, usarTemaGuinda).apply()
+
+        // Aplicar el tema inmediatamente
+        if (usarTemaGuinda) {
+            setTheme(R.style.Theme_BatallaNaval) // Tema guinda
+        } else {
+            setTheme(R.style.Theme_BatallaNavalGame) // Tema azul (por defecto)
+        }
+
+        // Recrear la actividad para que el cambio de tema surta efecto
+        recreate()
+    }
 
     // Historial de movimientos
     private val historialMovimientos = mutableListOf<Movimiento>()
+
 
     // Propiedades para vista previa
     private var previewFila: Int = -1
@@ -103,11 +122,22 @@ class BatallaNavalActivity : AppCompatActivity() {
     private lateinit var gameLogic: BatallaNavalGameLogic
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val sharedPreferences = getSharedPreferences(THEME_PREF_NAME, Context.MODE_PRIVATE)
+        val usarTemaGuinda = sharedPreferences.getBoolean(KEY_THEME, false)
+        if (usarTemaGuinda) {
+            setTheme(R.style.Theme_BatallaNaval) // Tema guinda
+        } else {
+            setTheme(R.style.Theme_BatallaNavalGame) // Tema azul (por defecto)
+        }
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_batalla_naval)
 
+
+
         // Inicializar lógica del juego
         gameLogic = BatallaNavalGameLogic(TABLERO_SIZE, BARCOS)
+
 
         // Inicializar UI components
         inicializarViews()
@@ -182,6 +212,25 @@ class BatallaNavalActivity : AppCompatActivity() {
         super.onResume()
         if (faseActual == FaseJuego.ATAQUE) {
             reanudarCronometro()
+        }
+    }
+    private fun configurarSelectorTema() {
+        // Crear un Switch para seleccionar tema
+        val switchTema = Switch(this)
+        switchTema.text = getString(R.string.tema_guinda)
+
+        // Configurar el estado inicial basado en la preferencia guardada
+        val sharedPreferences = getSharedPreferences(THEME_PREF_NAME, Context.MODE_PRIVATE)
+        val usarTemaGuinda = sharedPreferences.getBoolean(KEY_THEME, false)
+        switchTema.isChecked = usarTemaGuinda
+
+        // Añadir el Switch a la parte superior de la vista
+        val container = findViewById<LinearLayout>(R.id.container_principal)
+        container.addView(switchTema, 0) // Añadir al principio
+
+        // Configurar el listener
+        switchTema.setOnCheckedChangeListener { _, isChecked ->
+            cambiarTema(isChecked)
         }
     }
 
@@ -414,8 +463,9 @@ class BatallaNavalActivity : AppCompatActivity() {
         // Aplicar a botones
         val botones = listOf(
             findViewById<Button>(R.id.btnNuevaPartida),
-            findViewById<Button>(R.id.btnPosicionarBarcos),
-            findViewById<Button>(R.id.btnIniciarJuego)
+            // Eliminar referencias a botones que no existen
+            // findViewById<Button>(R.id.btnPosicionarBarcos),
+            // findViewById<Button>(R.id.btnIniciarJuego)
         )
 
         botones.forEach { boton ->
@@ -423,16 +473,28 @@ class BatallaNavalActivity : AppCompatActivity() {
             boton.setTextColor(ContextCompat.getColor(this, R.color.white))
         }
 
-        // Aplicar a título del juego
-        findViewById<TextView>(R.id.tvTitulo)?.setTextColor(
-            ContextCompat.getColor(this, R.color.guinda_ipn_primary)
-        )
+        // Comentar la línea que hace referencia a tvTitulo que no existe
+        // findViewById<TextView>(R.id.tvTitulo)?.setTextColor(
+        //    ContextCompat.getColor(this, R.color.guinda_ipn_primary)
+        // )
 
-        // Aplicar a celdas de tableros
+        // Aplicar a celdas de tableros - revisar si estos tableros existen
         aplicarEstiloTableros()
     }
 
     private fun aplicarEstiloTableros() {
+        // Solo mantener la lógica para el tablero que sabemos que existe - glTablero
+        // En lugar de buscar tableroJugador y tableroOponente que no existen en el layout
+
+        // Aplicar estilo directamente a glTablero
+        for (i in 0 until glTablero.childCount) {
+            val celda = glTablero.getChildAt(i)
+            // Usar un estilo genérico en lugar de uno específico que podría no existir
+            celda.background = ContextCompat.getDrawable(this, R.drawable.cell_empty)
+        }
+
+        // El código original que referencia tableroJugador y tableroOponente se comenta:
+        /*
         // Tablero jugador
         val tableroJugador = findViewById<GridLayout>(R.id.tableroJugador)
         for (i in 0 until tableroJugador.childCount) {
@@ -446,6 +508,7 @@ class BatallaNavalActivity : AppCompatActivity() {
             val celda = tableroOponente.getChildAt(i)
             celda.background = ContextCompat.getDrawable(this, R.drawable.celda_oponente_background)
         }
+        */
     }
 
     private fun actualizarUI() {
@@ -510,43 +573,34 @@ class BatallaNavalActivity : AppCompatActivity() {
         // Obtener dimensiones de la pantalla
         val displayMetrics = resources.displayMetrics
         val screenWidth = displayMetrics.widthPixels
+        val screenHeight = displayMetrics.heightPixels
 
-        // Calcular el tamaño máximo del tablero (90% del ancho de pantalla)
-        val tableroSize = (screenWidth * 0.9).toInt()
-        val cellSize = tableroSize / 10 // 10 celdas por lado
+        // Calcular el tamaño máximo del tablero (80% del ancho de pantalla)
+        // Reducido de 90% a 80% para dejar más espacio
+        val tableroSize = (screenWidth * 0.8).toInt()
+        // Asegurar que el tablero no sea más grande que el 40% de la altura de la pantalla
+        val maxHeight = (screenHeight * 0.4).toInt()
+        val finalSize = minOf(tableroSize, maxHeight)
 
-        // Aplicar a tablero del jugador
-        val tableroJugador = findViewById<GridLayout>(R.id.tableroJugador)
-        val paramsJugador = tableroJugador.layoutParams
-        paramsJugador.width = tableroSize
-        paramsJugador.height = tableroSize
-        tableroJugador.layoutParams = paramsJugador
+        val cellSize = finalSize / 10 // 10 celdas por lado
 
-        // Aplicar al tablero del oponente
-        val tableroOponente = findViewById<GridLayout>(R.id.tableroOponente)
-        val paramsOponente = tableroOponente.layoutParams
-        paramsOponente.width = tableroSize
-        paramsOponente.height = tableroSize
-        tableroOponente.layoutParams = paramsOponente
+        // Aplicar al tablero principal
+        val paramsTablero = glTablero.layoutParams
+        paramsTablero.width = finalSize
+        paramsTablero.height = finalSize
+        glTablero.layoutParams = paramsTablero
 
-        // Ajustar cada celda del tablero jugador
-        for (i in 0 until tableroJugador.childCount) {
-            val celda = tableroJugador.getChildAt(i)
-            val paramsCelda = celda.layoutParams as GridLayout.LayoutParams
-            paramsCelda.width = cellSize
-            paramsCelda.height = cellSize
-            paramsCelda.setMargins(1, 1, 1, 1)
-            celda.layoutParams = paramsCelda
-        }
-
-        // Ajustar cada celda del tablero oponente
-        for (i in 0 until tableroOponente.childCount) {
-            val celda = tableroOponente.getChildAt(i)
-            val paramsCelda = celda.layoutParams as GridLayout.LayoutParams
-            paramsCelda.width = cellSize
-            paramsCelda.height = cellSize
-            paramsCelda.setMargins(1, 1, 1, 1)
-            celda.layoutParams = paramsCelda
+        // Ajustar cada celda del tablero
+        for (i in 0 until glTablero.childCount) {
+            val celda = glTablero.getChildAt(i)
+            if (celda.layoutParams is GridLayout.LayoutParams) {
+                val paramsCelda = celda.layoutParams as GridLayout.LayoutParams
+                paramsCelda.width = cellSize
+                paramsCelda.height = cellSize
+                // Reducir los márgenes para celdas más compactas
+                paramsCelda.setMargins(1, 1, 1, 1)
+                celda.layoutParams = paramsCelda
+            }
         }
     }
 

@@ -95,5 +95,6 @@
     <string name="backup_guardado_json">Partida guardada en formato JSON como respaldo</string>
 
     <string name="partidas_jugadas_total">Total de partidas jugadas: %1$d</string>
+    <string name="tema_guinda">Tema Guinda IPN</string>
 
 </resources>
