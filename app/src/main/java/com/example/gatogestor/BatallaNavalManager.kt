@@ -4,6 +4,8 @@ import android.view.View
 import android.widget.*
 import java.util.*
 import android.util.Log
+import android.content.Context
+import android.widget.Toast
 
 class BatallaNavalManager(private val context: Context) {
     private val internalSaveManager = SaveGameManager(context)

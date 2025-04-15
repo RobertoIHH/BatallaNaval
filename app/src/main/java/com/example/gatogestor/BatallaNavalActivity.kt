@@ -1,5 +1,8 @@
 package com.example.batallanavalgame
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
 import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle

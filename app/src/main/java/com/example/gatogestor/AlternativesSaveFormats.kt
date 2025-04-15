@@ -245,18 +245,56 @@ class AlternativeSaveFormats(private val context: Context) {
     private fun extraerTablero(data: Any?): Array<Array<EstadoCelda>>? {
         if (data == null) return null
 
-        // Convertimos de vuelta a JSON y utilizamos Gson para la deserialización
-        val json = gson.toJson(data)
-        val type = object : TypeToken<Array<Array<EstadoCelda>>>() {}.type
-        return gson.fromJson(json, type)
+        try {
+            // Si ya es del tipo correcto, devolverlo directamente
+            if (data is Array<*> && data.isArrayOf<Array<EstadoCelda>>()) {
+                return data as Array<Array<EstadoCelda>>
+            }
+
+            // Convertir de vuelta a JSON y utilizar Gson para la deserialización
+            val json = gson.toJson(data)
+            val type = object : TypeToken<Array<Array<EstadoCelda>>>() {}.type
+            return gson.fromJson(json, type)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error extraendo tablero: ${e.message}", e)
+            return null
+        }
     }
 
     private fun extraerTableroAtaques(data: Any?): Array<Array<Boolean>>? {
         if (data == null) return null
 
-        val json = gson.toJson(data)
-        val type = object : TypeToken<Array<Array<Boolean>>>() {}.type
-        return gson.fromJson(json, type)
+        try {
+            // Si ya es del tipo correcto, devolverlo directamente
+            if (data is Array<*> && data.isArrayOf<Array<Boolean>>()) {
+                return data as Array<Array<Boolean>>
+            }
+
+            // Procesar manualmente si es una lista o un array
+            if (data is List<*>) {
+                val rows = data.size
+                val cols = if (rows > 0 && data[0] is List<*>) (data[0] as List<*>).size else 0
+
+                return Array(rows) { i ->
+                    Array(cols) { j ->
+                        if (data[i] is List<*>) {
+                            (data[i] as List<*>).getOrNull(j)?.toString()?.toBoolean() ?: false
+                        } else {
+                            false
+                        }
+                    }
+                }
+            }
+
+            // Convertir de vuelta a JSON y utilizar Gson
+            val json = gson.toJson(data)
+            val type = object : TypeToken<Array<Array<Boolean>>>() {}.type
+            return gson.fromJson(json, type)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error extraendo tablero de ataques: ${e.message}", e)
+            // Retornar un array vacío en caso de error
+            return Array(10) { Array(10) { false } }
+        }
     }
 
     /**

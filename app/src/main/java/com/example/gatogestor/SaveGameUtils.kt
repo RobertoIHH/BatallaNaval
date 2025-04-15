@@ -35,6 +35,10 @@ object SaveGameUtils {
                 Array<Array<Boolean>>::class.java,
                 ArraysTypeAdapter<Boolean>()
             )
+            .registerTypeAdapter(
+                java.lang.reflect.Array.newInstance(java.lang.Boolean::class.java, 0, 0).javaClass,
+                ArraysTypeAdapter<Boolean>()
+            )
             .create()
     }
 
@@ -70,47 +74,43 @@ object SaveGameUtils {
         ): Array<Array<T>> {
             try {
                 val jsonArray = json.asJsonArray
-                val outerArray = ArrayList<Array<Any?>>()
+                val rows = jsonArray.size()
+                val cols = if (rows > 0) jsonArray.get(0).asJsonArray.size() else 0
 
-                // Determinar el tipo de elemento
+                // Determinar el tipo del elemento
                 val elementClass = getElementClass(typeOfT)
 
-                for (innerJson in jsonArray) {
-                    val innerJsonArray = innerJson.asJsonArray
-                    val innerArray = java.lang.reflect.Array.newInstance(
-                        elementClass,
-                        innerJsonArray.size()
-                    ) as Array<Any?>
+                // Crear un array "raw" que luego convertiremos
+                val result = java.lang.reflect.Array.newInstance(
+                    elementClass, rows, cols
+                ) as Array<*>
 
-                    for (i in 0 until innerJsonArray.size()) {
+                // Llenar el array con los valores
+                for (i in 0 until rows) {
+                    val innerArray = jsonArray.get(i).asJsonArray
+                    for (j in 0 until innerArray.size()) {
                         try {
-                            innerArray[i] = context.deserialize<Any>(
-                                innerJsonArray.get(i),
-                                elementClass
+                            val element = context.deserialize<Any>(innerArray.get(j), elementClass)
+                            java.lang.reflect.Array.set(
+                                java.lang.reflect.Array.get(result, i),
+                                j,
+                                element
                             )
                         } catch (e: Exception) {
                             Log.e("SaveGameUtils", "Error deserializando elemento: ${e.message}")
-                            // Valor por defecto según el tipo
-                            innerArray[i] = getDefaultValue(elementClass)
+                            // Usar valor por defecto
+                            java.lang.reflect.Array.set(
+                                java.lang.reflect.Array.get(result, i),
+                                j,
+                                getDefaultValue(elementClass)
+                            )
                         }
                     }
-
-                    outerArray.add(innerArray)
                 }
 
-                // Crear array final
-                val resultArray = java.lang.reflect.Array.newInstance(
-                    getArrayClass(elementClass),
-                    outerArray.size
-                )
-
-                for (i in outerArray.indices) {
-                    java.lang.reflect.Array.set(resultArray, i, outerArray[i])
-                }
-
-                return resultArray as Array<Array<T>>
+                return result as Array<Array<T>>
             } catch (e: Exception) {
-                Log.e("SaveGameUtils", "Error completo deserializando: ${e.message}")
+                Log.e("SaveGameUtils", "Error completo deserializando: ${e.message}", e)
                 return createEmptyArray(typeOfT) as Array<Array<T>>
             }
         }
@@ -118,10 +118,10 @@ object SaveGameUtils {
         private fun getDefaultValue(clazz: Class<*>): Any? {
             return when (clazz) {
                 EstadoCelda::class.java -> EstadoCelda.VACIA
-                Boolean::class.java -> false
+                Boolean::class.java, java.lang.Boolean::class.java -> false
                 String::class.java -> ""
-                Int::class.java -> 0
-                Long::class.java -> 0L
+                Int::class.java, java.lang.Integer::class.java -> 0
+                Long::class.java, java.lang.Long::class.java -> 0L
                 else -> null
             }
         }
@@ -134,7 +134,7 @@ object SaveGameUtils {
                 if (typeName.contains("EstadoCelda")) {
                     return EstadoCelda::class.java
                 } else if (typeName.contains("Boolean")) {
-                    return Boolean::class.java
+                    return java.lang.Boolean::class.java
                 }
 
                 // Si el tipo es parametrizado, intentar extraer información
@@ -146,7 +146,7 @@ object SaveGameUtils {
                     if (argTypeName.contains("EstadoCelda")) {
                         return EstadoCelda::class.java
                     } else if (argTypeName.contains("Boolean")) {
-                        return Boolean::class.java
+                        return java.lang.Boolean::class.java
                     }
                 }
 
@@ -158,16 +158,11 @@ object SaveGameUtils {
             }
         }
 
-        private fun getArrayClass(elementClass: Class<*>): Class<*> {
-            return java.lang.reflect.Array.newInstance(elementClass, 0).javaClass
-        }
-
+        @Suppress("UNCHECKED_CAST")
         private fun createEmptyArray(type: Type): Array<Array<Any?>> {
             val elementClass = getElementClass(type)
-
-            return Array(2) {
-                Array<Any?>(2) { getDefaultValue(elementClass) }
-            }
+            val emptyArray = java.lang.reflect.Array.newInstance(elementClass, 2, 2)
+            return emptyArray as Array<Array<Any?>>
         }
     }
 }
