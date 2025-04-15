@@ -13,5 +13,22 @@
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
     </style>
+    <style name="Theme.BatallaNaval" parent="Theme.MaterialComponents.Light.DarkActionBar">
+        <!-- Colores primarios -->
+        <item name="colorPrimary">@color/guinda_ipn_primary</item>
+        <item name="colorPrimaryVariant">@color/guinda_ipn_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+
+        <!-- Colores secundarios -->
+        <item name="colorSecondary">@color/guinda_ipn_light</item>
+        <item name="colorSecondaryVariant">@color/guinda_ipn_dark</item>
+        <item name="colorOnSecondary">@color/white</item>
+
+        <!-- Estado de la barra -->
+        <item name="android:statusBarColor">@color/guinda_ipn_dark</item>
+
+        <!-- Otros atributos -->
+        <item name="android:windowBackground">@color/gris_claro</item>
+    </style>
 
 </resources>

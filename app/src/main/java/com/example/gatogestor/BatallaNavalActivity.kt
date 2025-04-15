@@ -125,6 +125,9 @@ class BatallaNavalActivity : AppCompatActivity() {
 
         // Configurar listeners
         configurarBotones()
+        ajustarTableros()
+        aplicarEstiloGuinda()
+
 
         // Inicializar tablero
         inicializarTablero()
@@ -407,6 +410,44 @@ class BatallaNavalActivity : AppCompatActivity() {
         }
     }
 
+    private fun aplicarEstiloGuinda() {
+        // Aplicar a botones
+        val botones = listOf(
+            findViewById<Button>(R.id.btnNuevaPartida),
+            findViewById<Button>(R.id.btnPosicionarBarcos),
+            findViewById<Button>(R.id.btnIniciarJuego)
+        )
+
+        botones.forEach { boton ->
+            boton.setBackgroundColor(ContextCompat.getColor(this, R.color.guinda_ipn_primary))
+            boton.setTextColor(ContextCompat.getColor(this, R.color.white))
+        }
+
+        // Aplicar a título del juego
+        findViewById<TextView>(R.id.tvTitulo)?.setTextColor(
+            ContextCompat.getColor(this, R.color.guinda_ipn_primary)
+        )
+
+        // Aplicar a celdas de tableros
+        aplicarEstiloTableros()
+    }
+
+    private fun aplicarEstiloTableros() {
+        // Tablero jugador
+        val tableroJugador = findViewById<GridLayout>(R.id.tableroJugador)
+        for (i in 0 until tableroJugador.childCount) {
+            val celda = tableroJugador.getChildAt(i)
+            celda.background = ContextCompat.getDrawable(this, R.drawable.celda_jugador_background)
+        }
+
+        // Tablero oponente
+        val tableroOponente = findViewById<GridLayout>(R.id.tableroOponente)
+        for (i in 0 until tableroOponente.childCount) {
+            val celda = tableroOponente.getChildAt(i)
+            celda.background = ContextCompat.getDrawable(this, R.drawable.celda_oponente_background)
+        }
+    }
+
     private fun actualizarUI() {
         // Actualizar textos según la fase actual
         when (faseActual) {
@@ -462,6 +503,50 @@ class BatallaNavalActivity : AppCompatActivity() {
             )
         } else {
             tvInstrucciones.text = getString(R.string.todos_barcos_colocados)
+        }
+    }
+
+    private fun ajustarTableros() {
+        // Obtener dimensiones de la pantalla
+        val displayMetrics = resources.displayMetrics
+        val screenWidth = displayMetrics.widthPixels
+
+        // Calcular el tamaño máximo del tablero (90% del ancho de pantalla)
+        val tableroSize = (screenWidth * 0.9).toInt()
+        val cellSize = tableroSize / 10 // 10 celdas por lado
+
+        // Aplicar a tablero del jugador
+        val tableroJugador = findViewById<GridLayout>(R.id.tableroJugador)
+        val paramsJugador = tableroJugador.layoutParams
+        paramsJugador.width = tableroSize
+        paramsJugador.height = tableroSize
+        tableroJugador.layoutParams = paramsJugador
+
+        // Aplicar al tablero del oponente
+        val tableroOponente = findViewById<GridLayout>(R.id.tableroOponente)
+        val paramsOponente = tableroOponente.layoutParams
+        paramsOponente.width = tableroSize
+        paramsOponente.height = tableroSize
+        tableroOponente.layoutParams = paramsOponente
+
+        // Ajustar cada celda del tablero jugador
+        for (i in 0 until tableroJugador.childCount) {
+            val celda = tableroJugador.getChildAt(i)
+            val paramsCelda = celda.layoutParams as GridLayout.LayoutParams
+            paramsCelda.width = cellSize
+            paramsCelda.height = cellSize
+            paramsCelda.setMargins(1, 1, 1, 1)
+            celda.layoutParams = paramsCelda
+        }
+
+        // Ajustar cada celda del tablero oponente
+        for (i in 0 until tableroOponente.childCount) {
+            val celda = tableroOponente.getChildAt(i)
+            val paramsCelda = celda.layoutParams as GridLayout.LayoutParams
+            paramsCelda.width = cellSize
+            paramsCelda.height = cellSize
+            paramsCelda.setMargins(1, 1, 1, 1)
+            celda.layoutParams = paramsCelda
         }
     }
 

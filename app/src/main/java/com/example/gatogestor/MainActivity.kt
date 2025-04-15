@@ -28,6 +28,8 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, BatallaNavalActivity::class.java)
             intent.putExtra("CARGAR_PARTIDA", true)
             startActivity(intent)
+
         }
+
     }
 }

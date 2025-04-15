@@ -241,6 +241,13 @@
                     android:layout_weight="1"
                     android:layout_marginStart="4dp"
                     android:text="@string/nueva_partida" />
+                <Button
+                    android:id="@+id/btnCargarPartida"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:text="@string/nueva_partida" />
             </LinearLayout>
 
             <!-- Botones adicionales para historial y estadísticas -->

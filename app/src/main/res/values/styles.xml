@@ -12,4 +12,18 @@
         <item name="android:textColor">?attr/colorPrimary</item>
         <item name="android:gravity">center</item>
     </style>
+    <style name="BotonGuinda" parent="Widget.MaterialComponents.Button">
+        <item name="android:backgroundTint">@color/guinda_ipn_primary</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <!-- Estilo para celdas del tablero jugador -->
+    <style name="CeldaTableroJugador">
+        <item name="android:background">@drawable/celda_jugador_background</item>
+    </style>
+
+    <!-- Estilo para celdas del tablero oponente -->
+    <style name="CeldaTableroOponente">
+        <item name="android:background">@drawable/celda_oponente_background</item>
+    </style>
 </resources>

@@ -18,4 +18,13 @@
     <color name="player_o">#3F51B5</color>
     <color name="board_background">#F5F5F5</color>
     <color name="winner_background">#A5D6A7</color>
+
+    <!-- Colores IPN (guinda) -->
+    <color name="guinda_ipn_primary">#8E1F38</color>
+    <color name="guinda_ipn_dark">#6A172A</color>
+    <color name="guinda_ipn_light">#B22847</color>
+
+    <!-- Colores complementarios -->
+    <color name="gris_claro">#EEEEEE</color>
+
 </resources>

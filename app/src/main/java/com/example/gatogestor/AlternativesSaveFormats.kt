@@ -25,218 +25,169 @@ class AlternativeSaveFormats(private val context: Context) {
     /**
      * Guarda una partida en formato XML
      */
-    fun guardarPartidaXML(estadoJuego: EstadoPartida) {
-        val file = File(context.filesDir, SaveGameUtils.SAVE_FILE_XML)
-        val fileOutputStream = FileOutputStream(file)
+    fun guardarPartidaXML(context: Context, partidaGuardada: PartidaGuardada, nombreArchivo: String): Boolean {
+        try {
+            val fileOutputStream = context.openFileOutput(nombreArchivo, Context.MODE_PRIVATE)
+            val serializer = Xml.newSerializer()
+            serializer.setOutput(fileOutputStream, "UTF-8")
+            serializer.startDocument(null, Boolean.TRUE)
 
-        val serializer = Xml.newSerializer()
-        serializer.setOutput(fileOutputStream, "UTF-8")
-        serializer.startDocument("UTF-8", true)
-        serializer.startTag("", "BatallaNavalSave")
+            // Inicio del elemento raíz
+            serializer.startTag(null, "partida")
 
-        // Escribir metadatos
-        serializer.startTag("", "Metadata")
-        serializer.startTag("", "SaveDate")
-        serializer.text(SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date()))
-        serializer.endTag("", "SaveDate")
-        serializer.startTag("", "Version")
-        serializer.text("1.0")
-        serializer.endTag("", "Version")
-        serializer.endTag("", "Metadata")
+            // Fecha
+            serializer.startTag(null, "fecha")
+            serializer.text(partidaGuardada.fecha.toString())
+            serializer.endTag(null, "fecha")
 
-        // Escribir información básica del estado
-        serializer.startTag("", "GameState")
-        serializer.startTag("", "Phase")
-        serializer.text(estadoJuego.faseActual.name)
-        serializer.endTag("", "Phase")
-        serializer.startTag("", "CurrentPlayer")
-        serializer.text(estadoJuego.jugadorActual.toString())
-        serializer.endTag("", "CurrentPlayer")
-        serializer.startTag("", "ShipIndex")
-        serializer.text(estadoJuego.barcoActualIndex.toString())
-        serializer.endTag("", "ShipIndex")
-        serializer.startTag("", "Orientation")
-        serializer.text(estadoJuego.orientacionHorizontal.toString())
-        serializer.endTag("", "Orientation")
-        serializer.startTag("", "Player1Name")
-        serializer.text(estadoJuego.nombreJugador1)
-        serializer.endTag("", "Player1Name")
-        serializer.startTag("", "Player2Name")
-        serializer.text(estadoJuego.nombreJugador2)
-        serializer.endTag("", "Player2Name")
-        serializer.startTag("", "Player1Score")
-        serializer.text(estadoJuego.puntajeJugador1.toString())
-        serializer.endTag("", "Player1Score")
-        serializer.startTag("", "Player2Score")
-        serializer.text(estadoJuego.puntajeJugador2.toString())
-        serializer.endTag("", "Player2Score")
-        serializer.startTag("", "GameTimeSeconds")
-        serializer.text(estadoJuego.tiempoJuegoSegundos.toString())
-        serializer.endTag("", "GameTimeSeconds")
-        serializer.endTag("", "GameState")
+            // Dificultad
+            serializer.startTag(null, "dificultad")
+            serializer.text(partidaGuardada.dificultad)
+            serializer.endTag(null, "dificultad")
 
-        // Convertir datos complejos a JSON para simplificar XML
-        val boardsJson = gson.toJson(mapOf(
-            "tableroJugador1" to estadoJuego.tableroJugador1,
-            "tableroJugador2" to estadoJuego.tableroJugador2,
-            "tableroAtaquesJugador1" to estadoJuego.tableroAtaquesJugador1,
-            "tableroAtaquesJugador2" to estadoJuego.tableroAtaquesJugador2
-        ))
+            // Barcos (asegurarse de que barcos esté inicializado)
+            if (partidaGuardada.barcos != null) {
+                for ((id, barco) in partidaGuardada.barcos) {
+                    serializer.startTag(null, "barco")
+                    serializer.attribute(null, "id", id)
 
-        val barcosJson = gson.toJson(mapOf(
-            "barcosJugador1" to estadoJuego.barcosJugador1,
-            "barcosJugador2" to estadoJuego.barcosJugador2
-        ))
+                    serializer.startTag(null, "posicion")
+                    serializer.text("${barco.fila},${barco.columna}")
+                    serializer.endTag(null, "posicion")
 
-        val movimientosJson = gson.toJson(estadoJuego.historialMovimientos)
+                    serializer.startTag(null, "orientacion")
+                    serializer.text(if (barco.esHorizontal) "HORIZONTAL" else "VERTICAL")
+                    serializer.endTag(null, "orientacion")
 
-        // Escribir datos complejos como CDATA
-        serializer.startTag("", "ComplexData")
-        serializer.startTag("", "Boards")
-        serializer.cdsect(boardsJson)
-        serializer.endTag("", "Boards")
-        serializer.startTag("", "Ships")
-        serializer.cdsect(barcosJson)
-        serializer.endTag("", "Ships")
-        serializer.startTag("", "MoveHistory")
-        serializer.cdsect(movimientosJson)
-        serializer.endTag("", "MoveHistory")
-        serializer.endTag("", "ComplexData")
+                    serializer.startTag(null, "tamaño")
+                    serializer.text(barco.tamaño.toString())
+                    serializer.endTag(null, "tamaño")
 
-        serializer.endTag("", "BatallaNavalSave")
-        serializer.endDocument()
+                    serializer.endTag(null, "barco")
+                }
+            }
 
-        fileOutputStream.close()
+            // Tablero del jugador
+            serializer.startTag(null, "tableroJugador")
+            for (i in partidaGuardada.tableroJugador.indices) {
+                serializer.startTag(null, "fila")
+                serializer.attribute(null, "indice", i.toString())
+                serializer.text(partidaGuardada.tableroJugador[i].joinToString(","))
+                serializer.endTag(null, "fila")
+            }
+            serializer.endTag(null, "tableroJugador")
+
+            // Tablero del oponente
+            serializer.startTag(null, "tableroOponente")
+            for (i in partidaGuardada.tableroOponente.indices) {
+                serializer.startTag(null, "fila")
+                serializer.attribute(null, "indice", i.toString())
+                serializer.text(partidaGuardada.tableroOponente[i].joinToString(","))
+                serializer.endTag(null, "fila")
+            }
+            serializer.endTag(null, "tableroOponente")
+
+            // Cierre del elemento raíz
+            serializer.endTag(null, "partida")
+            serializer.endDocument()
+            fileOutputStream.close()
+
+            return true
+        } catch (e: Exception) {
+            Log.e("AlternativeSaveFormats", "Error guardando XML: ${e.message}", e)
+            return false
+        }
     }
 
     /**
      * Carga una partida desde formato XML
      */
-    fun cargarPartidaXML(): EstadoPartida? {
-        val file = File(context.filesDir, SaveGameUtils.SAVE_FILE_XML)
-        if (!file.exists()) return null
-
-        val fileInputStream = FileInputStream(file)
-        val parser = Xml.newPullParser()
-        parser.setInput(fileInputStream, null)
-
-        var eventType = parser.eventType
-
-        // Valores base
-        var faseActual = FaseJuego.CONFIGURACION
-        var jugadorActual = 1
-        var barcoActualIndex = 0
-        var orientacionHorizontal = true
-        var nombreJugador1 = "Jugador 1"
-        var nombreJugador2 = "Jugador 2"
-        var puntajeJugador1 = 0
-        var puntajeJugador2 = 0
-        var tiempoJuegoSegundos = 0L
-
-        // Para datos complejos
-        var boardsJson = ""
-        var shipsJson = ""
-        var movesJson = ""
-
-        // Para seguimiento de dónde estamos en el XML
-        var insideGameState = false
-        var insideComplexData = false
-        var currentTag = ""
-        var currentComplexTag = ""
-
-        while (eventType != XmlPullParser.END_DOCUMENT) {
-            when (eventType) {
-                XmlPullParser.START_TAG -> {
-                    when (parser.name) {
-                        "GameState" -> insideGameState = true
-                        "ComplexData" -> insideComplexData = true
-                        else -> {
-                            if (insideGameState) currentTag = parser.name
-                            if (insideComplexData) currentComplexTag = parser.name
-                        }
-                    }
-                }
-                XmlPullParser.TEXT -> {
-                    if (insideGameState && !parser.isWhitespace) {
-                        when (currentTag) {
-                            "Phase" -> faseActual = FaseJuego.valueOf(parser.text)
-                            "CurrentPlayer" -> jugadorActual = parser.text.toInt()
-                            "ShipIndex" -> barcoActualIndex = parser.text.toInt()
-                            "Orientation" -> orientacionHorizontal = parser.text.toBoolean()
-                            "Player1Name" -> nombreJugador1 = parser.text
-                            "Player2Name" -> nombreJugador2 = parser.text
-                            "Player1Score" -> puntajeJugador1 = parser.text.toInt()
-                            "Player2Score" -> puntajeJugador2 = parser.text.toInt()
-                            "GameTimeSeconds" -> tiempoJuegoSegundos = parser.text.toLong()
-                        }
-                    }
-                }
-                XmlPullParser.CDSECT -> {
-                    if (insideComplexData) {
-                        when (currentComplexTag) {
-                            "Boards" -> boardsJson = parser.text
-                            "Ships" -> shipsJson = parser.text
-                            "MoveHistory" -> movesJson = parser.text
-                        }
-                    }
-                }
-                XmlPullParser.END_TAG -> {
-                    when (parser.name) {
-                        "GameState" -> insideGameState = false
-                        "ComplexData" -> insideComplexData = false
-                    }
-                }
-            }
-            eventType = parser.next()
-        }
-
-        fileInputStream.close()
-
-        // Procesar datos complejos desde JSON
+    fun cargarPartidaXML(context: Context, nombreArchivo: String): PartidaGuardada? {
         try {
-            // Tableros
-            val boardsMapType = object : TypeToken<Map<String, Any>>() {}.type
-            val boardsMap = gson.fromJson<Map<String, Any>>(boardsJson, boardsMapType)
+            val fileInputStream = context.openFileInput(nombreArchivo)
+            val parser = Xml.newPullParser()
+            parser.setInput(fileInputStream, null)
 
-            // Extraer tableros
-            val tableroJugador1 = extraerTablero(boardsMap["tableroJugador1"])
-            val tableroJugador2 = extraerTablero(boardsMap["tableroJugador2"])
-            val tableroAtaquesJugador1 = extraerTableroAtaques(boardsMap["tableroAtaquesJugador1"])
-            val tableroAtaquesJugador2 = extraerTableroAtaques(boardsMap["tableroAtaquesJugador2"])
+            var eventType = parser.eventType
+            val partidaGuardada = PartidaGuardada()
+            // Inicializar obligatoriamente las estructuras de datos
+            partidaGuardada.barcos = mutableMapOf()
+            partidaGuardada.tableroJugador = Array(10) { Array(10) { 0 } }
+            partidaGuardada.tableroOponente = Array(10) { Array(10) { 0 } }
 
-            // Barcos
-            val shipsMapType = object : TypeToken<Map<String, List<BarcoColocado>>>() {}.type
-            val shipsMap = gson.fromJson<Map<String, List<BarcoColocado>>>(shipsJson, shipsMapType)
+            var barcoActual: DatosBarco? = null
+            var idBarcoActual: String? = null
 
-            val barcosJugador1 = shipsMap["barcosJugador1"] ?: listOf()
-            val barcosJugador2 = shipsMap["barcosJugador2"] ?: listOf()
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                when (eventType) {
+                    XmlPullParser.START_TAG -> {
+                        when (parser.name) {
+                            "fecha" -> {
+                                parser.next()
+                                partidaGuardada.fecha = parser.text?.toLongOrNull() ?: System.currentTimeMillis()
+                            }
+                            "dificultad" -> {
+                                parser.next()
+                                partidaGuardada.dificultad = parser.text ?: "NORMAL"
+                            }
+                            "barco" -> {
+                                barcoActual = DatosBarco()
+                                idBarcoActual = parser.getAttributeValue(null, "id")
+                            }
+                            "posicion" -> {
+                                if (barcoActual != null) {
+                                    parser.next()
+                                    val posicion = parser.text?.split(",")
+                                    if (posicion != null && posicion.size >= 2) {
+                                        barcoActual.fila = posicion[0].toIntOrNull() ?: 0
+                                        barcoActual.columna = posicion[1].toIntOrNull() ?: 0
+                                    }
+                                }
+                            }
+                            "orientacion" -> {
+                                if (barcoActual != null) {
+                                    parser.next()
+                                    barcoActual.esHorizontal = parser.text.equals("HORIZONTAL", ignoreCase = true)
+                                }
+                            }
+                            "tamaño" -> {
+                                if (barcoActual != null) {
+                                    parser.next()
+                                    barcoActual.tamaño = parser.text?.toIntOrNull() ?: 2
+                                }
+                            }
+                            "fila" -> {
+                                val indice = parser.getAttributeValue(null, "indice")?.toIntOrNull() ?: 0
+                                parser.next()
+                                val valores = parser.text?.split(",")?.map { it.toIntOrNull() ?: 0 }?.toTypedArray()
 
-            // Movimientos
-            val movesType = object : TypeToken<List<Movimiento>>() {}.type
-            val historialMovimientos = gson.fromJson<List<Movimiento>>(movesJson, movesType) ?: listOf()
+                                // Verificar si estamos en el tablero del jugador o del oponente
+                                if (parser.name == "tableroJugador" && indice < partidaGuardada.tableroJugador.size && valores != null) {
+                                    System.arraycopy(valores, 0, partidaGuardada.tableroJugador[indice], 0,
+                                        minOf(valores.size, partidaGuardada.tableroJugador[indice].size))
+                                } else if (parser.name == "tableroOponente" && indice < partidaGuardada.tableroOponente.size && valores != null) {
+                                    System.arraycopy(valores, 0, partidaGuardada.tableroOponente[indice], 0,
+                                        minOf(valores.size, partidaGuardada.tableroOponente[indice].size))
+                                }
+                            }
+                        }
+                    }
+                    XmlPullParser.END_TAG -> {
+                        if (parser.name == "barco" && barcoActual != null && idBarcoActual != null) {
+                            // Agregar el barco al mapa cuando terminamos de procesar sus datos
+                            partidaGuardada.barcos[idBarcoActual] = barcoActual
+                            barcoActual = null
+                            idBarcoActual = null
+                        }
+                    }
+                }
+                eventType = parser.next()
+            }
 
-            // Crear objeto de estado
-            return EstadoPartida(
-                faseActual,
-                jugadorActual,
-                barcoActualIndex,
-                orientacionHorizontal,
-                tableroJugador1 ?: Array(10) { Array(10) { EstadoCelda.VACIA } },
-                tableroJugador2 ?: Array(10) { Array(10) { EstadoCelda.VACIA } },
-                tableroAtaquesJugador1 ?: Array(10) { Array(10) { false } },
-                tableroAtaquesJugador2 ?: Array(10) { Array(10) { false } },
-                barcosJugador1,
-                barcosJugador2,
-                nombreJugador1,
-                nombreJugador2,
-                puntajeJugador1,
-                puntajeJugador2,
-                tiempoJuegoSegundos,
-                historialMovimientos
-            )
-
+            fileInputStream.close()
+            return partidaGuardada
         } catch (e: Exception) {
-            Log.e(TAG, "Error procesando datos complejos de XML", e)
+            Log.e("AlternativeSaveFormats", "Error cargando XML: ${e.message}", e)
             return null
         }
     }
