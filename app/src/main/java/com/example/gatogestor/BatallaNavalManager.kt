@@ -28,7 +28,7 @@ class BatallaNavalManager(private val context: Context) {
             // Guardar en la ubicación seleccionada
             val success = when (saveLocation) {
                 SaveLocation.INTERNAL -> {
-                    internalSaveManager.guardarPartida(estadoPartida)
+                    internalSaveManager.guardarPartida(estadoPartida, vista = vista)
                     true
                 }
                 SaveLocation.DATASTORE -> {
@@ -84,4 +84,28 @@ class BatallaNavalManager(private val context: Context) {
             return null
         }
     }
+
+    // Métodos delegados a SaveGameManager para estadísticas
+    fun getVictoriasJugador(jugador: Int): Int {
+        return internalSaveManager.getVictoriasJugador(jugador)
+    }
+
+    fun getPartidasJugadas(): Int {
+        return internalSaveManager.getPartidasJugadas()
+    }
+
+    fun registrarVictoria(jugador: Int) {
+        internalSaveManager.registrarVictoria(jugador)
+    }
+
+    fun getSavedFormat(): SaveFormat {
+        return internalSaveManager.getSavedFormat()
+    }
+
+    fun guardarFormatoSeleccionado(formato: SaveFormat) {
+        internalSaveManager.guardarFormatoSeleccionado(formato)
+    }
+
+    // Alias para el tipo de formato
+    typealias SaveFormat = SaveGameManager.SaveFormat
 }

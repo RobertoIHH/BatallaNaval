@@ -3,13 +3,11 @@ package com.example.batallanavalgame
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
-import android.util.Xml
 import android.view.View
 import android.widget.Toast
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import org.xmlpull.v1.XmlPullParser
 import java.io.*
 
 /**
@@ -59,7 +57,11 @@ class SaveGameManager(private val context: Context) {
         try {
             when (formato) {
                 SaveFormat.JSON -> jsonSaveFormat.guardarPartidaJSON(estadoJuego)
-                SaveFormat.XML -> alternativeSaveFormats.guardarPartidaXML(estadoJuego)
+                SaveFormat.XML -> {
+                    // Convertir EstadoPartida a PartidaGuardada para XML
+                    val partidaGuardada = convertirAPartidaGuardada(estadoJuego)
+                    alternativeSaveFormats.guardarPartidaXML(partidaGuardada, SAVE_FILE_XML)
+                }
                 SaveFormat.TEXT -> alternativeSaveFormats.guardarPartidaTXT(estadoJuego)
             }
 
@@ -118,7 +120,12 @@ class SaveGameManager(private val context: Context) {
         var estado = try {
             when (formatoPreferido) {
                 SaveFormat.JSON -> jsonSaveFormat.cargarPartidaJSON()
-                SaveFormat.XML -> alternativeSaveFormats.cargarPartidaXML()
+                SaveFormat.XML -> {
+                    val partidaGuardada = alternativeSaveFormats.cargarPartidaXML(SAVE_FILE_XML)
+                    if (partidaGuardada != null) {
+                        convertirDesdePartidaGuardada(partidaGuardada)
+                    } else null
+                }
                 SaveFormat.TEXT -> alternativeSaveFormats.cargarPartidaTXT()
             }
         } catch (e: Exception) {
@@ -137,7 +144,10 @@ class SaveGameManager(private val context: Context) {
 
         if (estado == null && formatoPreferido != SaveFormat.XML) {
             estado = try {
-                alternativeSaveFormats.cargarPartidaXML()
+                val partidaGuardada = alternativeSaveFormats.cargarPartidaXML(SAVE_FILE_XML)
+                if (partidaGuardada != null) {
+                    convertirDesdePartidaGuardada(partidaGuardada)
+                } else null
             } catch (e: Exception) {
                 null
             }
@@ -154,22 +164,150 @@ class SaveGameManager(private val context: Context) {
         return estado
     }
 
-    // Métodos para extraer tableros de los mapas
-    private fun extraerTablero(data: Any?): Array<Array<EstadoCelda>>? {
-        if (data == null) return null
+    /**
+     * Convierte un EstadoPartida a PartidaGuardada (para formato XML)
+     */
+    private fun convertirAPartidaGuardada(estadoJuego: EstadoPartida): PartidaGuardada {
+        val partidaGuardada = PartidaGuardada()
 
-        // Convertimos de vuelta a JSON y utilizamos Gson para la deserialización
-        val json = gson.toJson(data)
-        val type = object : TypeToken<Array<Array<EstadoCelda>>>() {}.type
-        return gson.fromJson(json, type)
+        // Configurar fecha y dificultad
+        partidaGuardada.fecha = System.currentTimeMillis()
+        partidaGuardada.dificultad = "NORMAL" // O usar un valor del estado si existe
+
+        // Convertir tableros (simplificado)
+        // Aquí se asume que el enum EstadoCelda tiene un ordinal que puede servir como valor numérico
+        val tableroJugador = Array(10) { i ->
+            Array(10) { j ->
+                estadoJuego.tableroJugador1[i][j].ordinal
+            }
+        }
+        val tableroOponente = Array(10) { i ->
+            Array(10) { j ->
+                estadoJuego.tableroJugador2[i][j].ordinal
+            }
+        }
+
+        partidaGuardada.tableroJugador = tableroJugador
+        partidaGuardada.tableroOponente = tableroOponente
+
+        // Convertir barcos (simplificado)
+        val barcos = mutableMapOf<String, DatosBarco>()
+
+        // Agregar barcos del jugador 1
+        estadoJuego.barcosJugador1.forEachIndexed { index, barcoColocado ->
+            if (barcoColocado.posiciones.isNotEmpty()) {
+                val primeraPosicion = barcoColocado.posiciones.first()
+                val esHorizontal = barcoColocado.posiciones.size > 1 &&
+                        barcoColocado.posiciones[0].first == barcoColocado.posiciones[1].first
+
+                val datosBarco = DatosBarco(
+                    primeraPosicion.first,
+                    primeraPosicion.second,
+                    esHorizontal,
+                    barcoColocado.longitud
+                )
+                barcos["barco_j1_$index"] = datosBarco
+            }
+        }
+
+        // Agregar barcos del jugador 2
+        estadoJuego.barcosJugador2.forEachIndexed { index, barcoColocado ->
+            if (barcoColocado.posiciones.isNotEmpty()) {
+                val primeraPosicion = barcoColocado.posiciones.first()
+                val esHorizontal = barcoColocado.posiciones.size > 1 &&
+                        barcoColocado.posiciones[0].first == barcoColocado.posiciones[1].first
+
+                val datosBarco = DatosBarco(
+                    primeraPosicion.first,
+                    primeraPosicion.second,
+                    esHorizontal,
+                    barcoColocado.longitud
+                )
+                barcos["barco_j2_$index"] = datosBarco
+            }
+        }
+
+        partidaGuardada.barcos = barcos
+
+        return partidaGuardada
     }
 
-    private fun extraerTableroAtaques(data: Any?): Array<Array<Boolean>>? {
-        if (data == null) return null
+    /**
+     * Convierte una PartidaGuardada a EstadoPartida (desde formato XML)
+     */
+    private fun convertirDesdePartidaGuardada(partidaGuardada: PartidaGuardada): EstadoPartida {
+        // Convertir los tableros
+        val tableroJugador1 = Array(10) { i ->
+            Array(10) { j ->
+                val valor = partidaGuardada.tableroJugador[i][j]
+                when(valor) {
+                    0 -> EstadoCelda.VACIA
+                    1 -> EstadoCelda.BARCO
+                    2 -> EstadoCelda.AGUA
+                    3 -> EstadoCelda.IMPACTO
+                    else -> EstadoCelda.VACIA
+                }
+            }
+        }
 
-        val json = gson.toJson(data)
-        val type = object : TypeToken<Array<Array<Boolean>>>() {}.type
-        return gson.fromJson(json, type)
+        val tableroJugador2 = Array(10) { i ->
+            Array(10) { j ->
+                val valor = partidaGuardada.tableroOponente[i][j]
+                when(valor) {
+                    0 -> EstadoCelda.VACIA
+                    1 -> EstadoCelda.BARCO
+                    2 -> EstadoCelda.AGUA
+                    3 -> EstadoCelda.IMPACTO
+                    else -> EstadoCelda.VACIA
+                }
+            }
+        }
+
+        // Tableros de ataques (simplificados)
+        val tableroAtaquesJugador1 = Array(10) { Array(10) { false } }
+        val tableroAtaquesJugador2 = Array(10) { Array(10) { false } }
+
+        // Convertir barcos
+        val barcosJugador1 = mutableListOf<BarcoColocado>()
+        val barcosJugador2 = mutableListOf<BarcoColocado>()
+
+        // Procesar barcos desde XML
+        for ((id, barco) in partidaGuardada.barcos) {
+            val posiciones = mutableListOf<Pair<Int, Int>>()
+
+            // Generar las posiciones basadas en la orientación y tamaño
+            for (i in 0 until barco.tamaño) {
+                val fila = if (barco.esHorizontal) barco.fila else barco.fila + i
+                val columna = if (barco.esHorizontal) barco.columna + i else barco.columna
+                posiciones.add(Pair(fila, columna))
+            }
+
+            val barcoColocado = BarcoColocado(barco.tamaño, posiciones)
+
+            if (id.startsWith("barco_j1_")) {
+                barcosJugador1.add(barcoColocado)
+            } else {
+                barcosJugador2.add(barcoColocado)
+            }
+        }
+
+        // Crear un estado de partida con los datos disponibles
+        return EstadoPartida(
+            FaseJuego.CONFIGURACION, // Fase por defecto
+            1, // Jugador actual por defecto
+            0, // Índice de barco actual por defecto
+            true, // Orientación horizontal por defecto
+            tableroJugador1,
+            tableroJugador2,
+            tableroAtaquesJugador1,
+            tableroAtaquesJugador2,
+            barcosJugador1,
+            barcosJugador2,
+            "Jugador 1", // Nombre predeterminado
+            "Jugador 2", // Nombre predeterminado
+            0, // Tiempo de juego por defecto
+            emptyList() // Historial de movimientos vacío
+        )
     }
 
     // Guarda el formato preferido del usuario
