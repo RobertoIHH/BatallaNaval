@@ -1,6 +1,6 @@
 # Batalla Naval Game
 ## Integrantes
-- Gonzalez Llamosas Noe
+- Gonzalez Llamosas Noe Ramses
 - Hernandez Hernandez Roberto Isaac
 
 ## Introducción
